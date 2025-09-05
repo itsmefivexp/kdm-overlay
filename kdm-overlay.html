@@ -307,10 +307,10 @@
 
         // --- Initial State and Data ---
         const initialSurvivors = [
-            { id: 'survivor-1', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-2', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-3', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-4', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
         ];
 
         const initialMonster = {
@@ -334,7 +334,7 @@
                 card.id = `card-${survivor.id}`;
                 card.className = "bg-gray-800 p-4 rounded-lg";
                 card.innerHTML = `
-                    <p class="text-xl font-bold mb-2">${survivor.name}</p>
+                    <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
                     <div class="grid grid-cols-2 gap-2 text-sm text-gray-300">
                         <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
                         <p>Insanity: <span id="${survivor.id}-insanity">${survivor.insanity}</span></p>
@@ -389,7 +389,7 @@
             gameState.survivors.forEach(survivor => {
                 const survivorDiv = document.createElement('div');
                 survivorDiv.className = "mb-4 border-b border-gray-700 pb-2";
-                survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">Survivor Name</label>
+                survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">${survivor.color} Survivor Name</label>
                     <input id="${survivor.id}-name-input" type="text" value="${survivor.name}" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 `;
                 controlsContainer.appendChild(survivorDiv);
