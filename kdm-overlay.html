@@ -436,21 +436,15 @@
                 gameState.monster.maxLife = value;
             }
             // Update survivor stats
-            else {
-                const [survivorId, statName, ...rest] = fieldId.split('-');
-                if (statName === 'name') {
-                    const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
-                    if (survivorIndex !== -1) {
-                        gameState.survivors[survivorIndex].name = value;
-                    }
-                } else {
-                    const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
-                    if (survivorIndex !== -1) {
-                        gameState.survivors[survivorIndex][statName] = value;
-                    }
+            else if (fieldId.startsWith('survivor-') && fieldId.endsWith('-input')) {
+                const parts = fieldId.split('-');
+                const statName = parts[parts.length - 2];
+                const survivorId = parts.slice(0, -2).join('-');
+                const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
+                if (survivorIndex !== -1) {
+                    gameState.survivors[survivorIndex][statName] = value;
                 }
             }
-
             try {
                 await setDoc(gameStateRef, gameState);
             } catch (error) {
