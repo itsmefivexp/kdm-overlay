@@ -131,8 +131,14 @@
         <!-- Monster Controls -->
         <div class="mb-6 border-b border-gray-700 pb-4">
             <h3 class="text-xl font-bold mb-2">Monster Stats</h3>
-            <label for="monster-hp-input" class="block text-gray-300 font-semibold mb-1">Monster HP</label>
-            <input id="monster-hp-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="mb-2">
+                <label for="monster-hp-input" class="block text-gray-300 font-semibold mb-1">Current HP</label>
+                <input id="monster-hp-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label for="monster-max-hp-input" class="block text-gray-300 font-semibold mb-1">Max HP</label>
+                <input id="monster-max-hp-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
         </div>
 
         <!-- Survivor Controls -->
@@ -289,6 +295,7 @@
             const hpText = document.getElementById('monster-hp-text');
             const hpFill = document.getElementById('monster-hp-fill');
             
+            // Calculate HP percentage based on current and max HP
             const hpPercentage = (monster.currentHP / monster.maxHP) * 100;
             hpFill.style.width = `${Math.max(0, hpPercentage)}%`;
             hpText.textContent = `${monster.currentHP} / ${monster.maxHP}`;
@@ -305,6 +312,10 @@
         const renderControlPanel = (gameState) => {
             const controlsContainer = document.getElementById('survivor-controls');
             controlsContainer.innerHTML = '';
+            
+            // Set values for Monster HP fields
+            document.getElementById('monster-hp-input').value = gameState.monster.currentHP;
+            document.getElementById('monster-max-hp-input').value = gameState.monster.maxHP;
 
             // Render survivor name inputs
             gameState.survivors.forEach(survivor => {
@@ -413,6 +424,8 @@
             // Update monster HP
             else if (fieldId === 'monster-hp-input') {
                 gameState.monster.currentHP = value;
+            } else if (fieldId === 'monster-max-hp-input') {
+                gameState.monster.maxHP = value;
             }
             // Update survivor stats
             else {
