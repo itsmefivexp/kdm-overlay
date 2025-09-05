@@ -132,6 +132,10 @@
         <div class="mb-6 border-b border-gray-700 pb-4">
             <h3 class="text-xl font-bold mb-2">Monster Stats</h3>
             <div class="mb-2">
+                <label for="monster-name-input" class="block text-gray-300 font-semibold mb-1">Monster Name</label>
+                <input id="monster-name-input" type="text" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="mb-2">
                 <label for="monster-hp-input" class="block text-gray-300 font-semibold mb-1">Current HP</label>
                 <input id="monster-hp-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
@@ -313,7 +317,8 @@
             const controlsContainer = document.getElementById('survivor-controls');
             controlsContainer.innerHTML = '';
             
-            // Set values for Monster HP fields
+            // Set values for Monster fields
+            document.getElementById('monster-name-input').value = gameState.monster.name;
             document.getElementById('monster-hp-input').value = gameState.monster.currentHP;
             document.getElementById('monster-max-hp-input').value = gameState.monster.maxHP;
 
@@ -421,7 +426,10 @@
             if (fieldId === 'year-input') {
                 gameState.year = value;
             }
-            // Update monster HP
+            // Update monster name or HP
+            else if (fieldId === 'monster-name-input') {
+                gameState.monster.name = value;
+            }
             else if (fieldId === 'monster-hp-input') {
                 gameState.monster.currentHP = value;
             } else if (fieldId === 'monster-max-hp-input') {
