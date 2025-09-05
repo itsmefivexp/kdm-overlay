@@ -152,9 +152,21 @@
 
         const setupFirebase = async () => {
             try {
-                if (Object.keys(firebaseConfig).length === 0) {
-                    throw new Error("Firebase config is not defined.");
+                // ADD YOUR FIREBASE CONFIG HERE
+                const firebaseConfig = {
+                apiKey: "AIzaSyDfdLGpibQqaggPRbYWZpVbh-QlQaNJDwk",
+                authDomain: "kdm-overlay-stats.firebaseapp.com",
+                projectId: "kdm-overlay-stats",
+                storageBucket: "kdm-overlay-stats.firebasestorage.app",
+                messagingSenderId: "1002649927452",
+                appId: "1:1002649927452:web:b2c15f6a9d588538dfc4d9",
+                measurementId: "G-49EC4DNWHE"
+                };
+                
+                if (!firebaseConfig.projectId) {
+                    throw new Error("Firebase config is not defined. Please add your config in the code.");
                 }
+
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
