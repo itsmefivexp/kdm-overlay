@@ -174,19 +174,8 @@
 
         const setupFirebase = async () => {
             try {
-                // ADD YOUR FIREBASE CONFIG HERE
-                const firebaseConfig = {
-                apiKey: "AIzaSyDfdLGpibQqaggPRbYWZpVbh-QlQaNJDwk",
-                authDomain: "kdm-overlay-stats.firebaseapp.com",
-                projectId: "kdm-overlay-stats",
-                storageBucket: "kdm-overlay-stats.firebasestorage.app",
-                messagingSenderId: "1002649927452",
-                appId: "1:1002649927452:web:b2c15f6a9d588538dfc4d9",
-                measurementId: "G-49EC4DNWHE"
-                };
-                
                 if (!firebaseConfig.projectId) {
-                    throw new Error("Firebase config is not defined. Please add your config in the code.");
+                    throw new Error("Firebase config is not defined. Please check your environment variables.");
                 }
 
                 app = initializeApp(firebaseConfig);
@@ -355,17 +344,27 @@
             const gameStateRef = getGameStateRef();
             if (!gameStateRef) return;
             
-            // Check if document exists, if not, create it
-            const docSnap = await getDoc(gameStateRef);
-            if (!docSnap.exists()) {
-                await setDoc(gameStateRef, initialGameState);
-            }
-
-            // Listen for real-time updates
-            onSnapshot(gameStateRef, (doc) => {
+            // Listen for real-time updates and handle initial state
+            onSnapshot(gameStateRef, async (doc) => {
                 if (doc.exists()) {
-                    const gameState = doc.data();
+                    const fetchedState = doc.data();
+                    
+                    // Merge fetched data with initial state to ensure all fields are present
+                    const updatedSurvivors = initialSurvivors.map(initialSurvivor => {
+                        const fetchedSurvivor = fetchedState.survivors.find(s => s.id === initialSurvivor.id) || {};
+                        return { ...initialSurvivor, ...fetchedSurvivor };
+                    });
+                    
+                    const gameState = {
+                        ...initialGameState,
+                        ...fetchedState,
+                        survivors: updatedSurvivors
+                    };
+
                     updateUI(gameState);
+                } else {
+                    // Document doesn't exist, create it from the initial state
+                    await setDoc(gameStateRef, initialGameState);
                 }
             });
         };
