@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDM Stream Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Uncial Antiqua', serif;
+            color: #f3f4f6;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(1px);
+        }
+        .container {
+            border: 2px solid #555;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        .stat-bar {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+        }
+        .stat-fill {
+            transition: width 0.3s ease-in-out;
+        }
+        .survivor-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        @media (max-width: 768px) {
+            .survivor-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        .stat-input {
+            width: 4rem;
+            text-align: center;
+        }
+        .control-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            background: rgba(17, 24, 39, 0.95);
+            border: 2px solid #4b5563;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+            display: none;
+        }
+        .monster-stats {
+            min-height: 120px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <!-- Main Overlay Container -->
+    <div id="main-overlay" class="container w-full max-w-7xl mx-auto rounded-lg p-6 md:p-10">
+
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-5xl font-bold mb-2 tracking-wide">Kingdom Death: Monster</h1>
+            <p id="game-year" class="text-xl md:text-2xl font-semibold text-gray-400">Lantern Year: 1</p>
+        </header>
+
+        <!-- Survivor and Monster Stats -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Survivor Stats Section -->
+            <section id="survivor-stats" class="lg:col-span-2 space-y-4">
+                <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Survivors</h2>
+                <div id="survivor-grid" class="survivor-section">
+                    <!-- Survivor cards will be dynamically inserted here -->
+                </div>
+            </section>
+
+            <!-- Monster Stats Section -->
+            <section id="monster-stats" class="lg:col-span-1">
+                <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Monster</h2>
+                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats">
+                    <p class="text-xl font-bold mb-2">Current Monster: <span id="monster-name">White Lion</span></p>
+                    <div class="mb-2">
+                        <label class="text-sm text-gray-400" for="monster-hp">HP</label>
+                        <div class="relative pt-1">
+                            <div class="overflow-hidden h-4 text-xs flex rounded bg-red-800">
+                                <div id="monster-hp-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                        <p id="monster-hp-text" class="text-sm text-right mt-1">20 / 20</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- General info and Footer -->
+        <footer class="text-center mt-6 text-gray-500 text-sm">
+            <p>Overlay powered by Firestore. Press <kbd>Esc</kbd> to toggle controls.</p>
+            <p>Your User ID: <span id="user-id"></span></p>
+        </footer>
+    </div>
+
+    <!-- Control Panel -->
+    <div id="control-panel" class="control-panel w-full max-w-lg p-8 rounded-lg">
+        <h2 class="text-3xl font-bold mb-4 text-center">Control Panel</h2>
+
+        <!-- General Game Info Controls -->
+        <div class="mb-6 border-b border-gray-700 pb-4">
+            <label for="year-input" class="block text-gray-300 font-semibold mb-2">Game Year</label>
+            <input id="year-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Monster Controls -->
+        <div class="mb-6 border-b border-gray-700 pb-4">
+            <h3 class="text-xl font-bold mb-2">Monster Stats</h3>
+            <label for="monster-hp-input" class="block text-gray-300 font-semibold mb-1">Monster HP</label>
+            <input id="monster-hp-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Survivor Controls -->
+        <div id="survivor-controls" class="space-y-4">
+            <h3 class="text-xl font-bold mb-2">Survivor Stats</h3>
+            <!-- Survivor input fields will be dynamically added here -->
+        </div>
+
+        <button id="close-btn" class="mt-6 w-full py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 transition duration-200">Close</button>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-4 left-4 p-4 bg-gray-800 text-white rounded-lg shadow-lg hidden"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- Firebase Setup ---
+        let app, db, auth;
+        let userId = null;
+        let isAuthReady = false;
+
+        const setupFirebase = async () => {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    throw new Error("Firebase config is not defined.");
+                }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id').textContent = userId;
+                        isAuthReady = true;
+                        initOverlay();
+                    } else {
+                        userId = crypto.randomUUID();
+                        isAuthReady = true;
+                        initOverlay();
+                    }
+                });
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showMessageBox("Error initializing Firebase. Check the console for details.", 'error');
+            }
+        };
+
+        const getGameStateRef = () => {
+            if (!db || !userId) {
+                console.error("Database or User ID not initialized.");
+                return null;
+            }
+            return doc(db, `artifacts/${appId}/users/${userId}/kdm_stats/game_state`);
+        };
+
+        const showMessageBox = (message, type = 'info') => {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 left-4 p-4 rounded-lg shadow-lg block z-50 transition-all duration-300 ease-in-out`;
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-800', 'text-white');
+            } else {
+                messageBox.classList.add('bg-gray-800', 'text-white');
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('block');
+                messageBox.classList.add('hidden');
+            }, 3000);
+        };
+
+        // --- Initial State and Data ---
+        const initialSurvivors = [
+            { id: 'survivor-1', name: 'Survivor 1', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
+            { id: 'survivor-2', name: 'Survivor 2', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
+            { id: 'survivor-3', name: 'Survivor 3', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
+            { id: 'survivor-4', name: 'Survivor 4', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
+        ];
+
+        const initialMonster = {
+            name: 'White Lion',
+            currentHP: 20,
+            maxHP: 20
+        };
+        
+        const initialGameState = {
+            year: 1,
+            survivors: initialSurvivors,
+            monster: initialMonster
+        };
+
+        // --- UI Rendering Functions ---
+        const renderSurvivors = (survivors) => {
+            const container = document.getElementById('survivor-grid');
+            container.innerHTML = '';
+            survivors.forEach(survivor => {
+                const card = document.createElement('div');
+                card.id = `card-${survivor.id}`;
+                card.className = "bg-gray-800 p-4 rounded-lg";
+                card.innerHTML = `
+                    <p class="text-xl font-bold mb-2">${survivor.name}</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm text-gray-300">
+                        <p>Courage: <span id="${survivor.id}-courage">${survivor.courage}</span></p>
+                        <p>Understanding: <span id="${survivor.id}-understanding">${survivor.understanding}</span></p>
+                        <p>Strength: <span id="${survivor.id}-strength">${survivor.strength}</span></p>
+                        <p>Accuracy: <span id="${survivor.id}-accuracy">${survivor.accuracy}</span></p>
+                        <p>Evasion: <span id="${survivor.id}-evasion">${survivor.evasion}</span></p>
+                        <p>Luck: <span id="${survivor.id}-luck">${survivor.luck}</span></p>
+                        <p>Speed: <span id="${survivor.id}-speed">${survivor.speed}</span></p>
+                        <p>Insanity: <span id="${survivor.id}-insanity">${survivor.insanity}</span></p>
+                    </div>
+                    <div class="mt-4">
+                        <label class="text-sm text-gray-400">Health: <span id="${survivor.id}-hp-text">${survivor.health} / ${survivor.maxHealth}</span></label>
+                        <div class="relative pt-1">
+                            <div class="overflow-hidden h-3 flex text-xs rounded bg-gray-600">
+                                <div id="${survivor.id}-hp-fill" style="width: ${survivor.health / survivor.maxHealth * 100}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        };
+
+        const renderMonster = (monster) => {
+            document.getElementById('monster-name').textContent = monster.name;
+            const hpText = document.getElementById('monster-hp-text');
+            const hpFill = document.getElementById('monster-hp-fill');
+            
+            const hpPercentage = (monster.currentHP / monster.maxHP) * 100;
+            hpFill.style.width = `${Math.max(0, hpPercentage)}%`;
+            hpText.textContent = `${monster.currentHP} / ${monster.maxHP}`;
+            hpFill.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
+            if (hpPercentage > 50) {
+                hpFill.classList.add('bg-green-500');
+            } else if (hpPercentage > 25) {
+                hpFill.classList.add('bg-yellow-500');
+            } else {
+                hpFill.classList.add('bg-red-500');
+            }
+        };
+
+        const renderControlPanel = (gameState) => {
+            const controlsContainer = document.getElementById('survivor-controls');
+            controlsContainer.innerHTML = '';
+
+            // Render survivor name inputs
+            gameState.survivors.forEach(survivor => {
+                const survivorDiv = document.createElement('div');
+                survivorDiv.className = "mb-4 border-b border-gray-700 pb-2";
+                survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">Survivor Name</label>
+                    <input id="${survivor.id}-name-input" type="text" value="${survivor.name}" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                `;
+                controlsContainer.appendChild(survivorDiv);
+                
+                // Add stat controls
+                const statContainer = document.createElement('div');
+                statContainer.className = "grid grid-cols-2 gap-4 mt-2";
+                Object.keys(survivor).filter(key => key !== 'id' && key !== 'name').forEach(stat => {
+                    statContainer.innerHTML += `
+                        <div>
+                            <label for="${survivor.id}-${stat}-input" class="block text-gray-300 font-semibold text-sm capitalize">${stat.replace(/([A-Z])/g, ' $1').trim()}</label>
+                            <input id="${survivor.id}-${stat}-input" type="number" value="${survivor[stat]}" class="stat-input p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    `;
+                });
+                survivorDiv.appendChild(statContainer);
+            });
+        };
+
+        // --- Firestore Listeners and Data Flow ---
+        const initOverlay = async () => {
+            if (!isAuthReady) {
+                // Wait for authentication to be ready
+                return;
+            }
+            
+            const gameStateRef = getGameStateRef();
+            if (!gameStateRef) return;
+            
+            // Check if document exists, if not, create it
+            const docSnap = await getDoc(gameStateRef);
+            if (!docSnap.exists()) {
+                await setDoc(gameStateRef, initialGameState);
+            }
+
+            // Listen for real-time updates
+            onSnapshot(gameStateRef, (doc) => {
+                if (doc.exists()) {
+                    const gameState = doc.data();
+                    updateUI(gameState);
+                }
+            });
+        };
+
+        const updateUI = (gameState) => {
+            // Update game year
+            document.getElementById('game-year').textContent = `Lantern Year: ${gameState.year}`;
+
+            // Update monster stats
+            renderMonster(gameState.monster);
+
+            // Update survivors
+            renderSurvivors(gameState.survivors);
+
+            // Update control panel
+            renderControlPanel(gameState);
+        };
+
+        // --- Control Panel Logic ---
+        const controlPanel = document.getElementById('control-panel');
+        const mainOverlay = document.getElementById('main-overlay');
+        const toggleControlPanel = () => {
+            const isVisible = controlPanel.style.display === 'block';
+            controlPanel.style.display = isVisible ? 'none' : 'block';
+            mainOverlay.classList.toggle('blur-sm', !isVisible);
+        };
+
+        // Event listeners for control panel
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                toggleControlPanel();
+            }
+        });
+
+        document.getElementById('close-btn').addEventListener('click', toggleControlPanel);
+
+        controlPanel.addEventListener('input', async (e) => {
+            if (!db || !userId) return;
+
+            const gameStateRef = getGameStateRef();
+            const fieldId = e.target.id;
+            const value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
+            
+            // Fetch the current game state
+            const docSnap = await getDoc(gameStateRef);
+            if (!docSnap.exists()) return;
+            let gameState = docSnap.data();
+
+            // Update game year
+            if (fieldId === 'year-input') {
+                gameState.year = value;
+            }
+            // Update monster HP
+            else if (fieldId === 'monster-hp-input') {
+                gameState.monster.currentHP = value;
+            }
+            // Update survivor stats
+            else {
+                const [survivorId, statName, ...rest] = fieldId.split('-');
+                if (statName === 'name') {
+                    const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
+                    if (survivorIndex !== -1) {
+                        gameState.survivors[survivorIndex].name = value;
+                    }
+                } else {
+                    const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
+                    if (survivorIndex !== -1) {
+                        gameState.survivors[survivorIndex][statName] = value;
+                    }
+                }
+            }
+
+            try {
+                await setDoc(gameStateRef, gameState);
+            } catch (error) {
+                console.error("Error updating document:", error);
+                showMessageBox("Error saving data. Check console.", 'error');
+            }
+        });
+
+        // Initialize the app on window load
+        window.onload = setupFirebase;
+    </script>
+</body>
+</html>
