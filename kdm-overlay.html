@@ -98,13 +98,13 @@
                 <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats">
                     <p class="text-xl font-bold mb-2">Current Monster: <span id="monster-name">White Lion</span></p>
                     <div class="mb-2">
-                        <label class="text-sm text-gray-400" for="monster-hp">HP</label>
+                        <label class="text-sm text-gray-400" for="monster-life">Life</label>
                         <div class="relative pt-1">
                             <div class="overflow-hidden h-4 text-xs flex rounded bg-red-800">
-                                <div id="monster-hp-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
+                                <div id="monster-life-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
                             </div>
                         </div>
-                        <p id="monster-hp-text" class="text-sm text-right mt-1">20 / 20</p>
+                        <p id="monster-life-text" class="text-sm text-right mt-1">20 / 20</p>
                     </div>
                 </div>
             </section>
@@ -136,12 +136,12 @@
                 <input id="monster-name-input" type="text" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div class="mb-2">
-                <label for="monster-hp-input" class="block text-gray-300 font-semibold mb-1">Current HP</label>
-                <input id="monster-hp-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label for="monster-life-input" class="block text-gray-300 font-semibold mb-1">Current Life</label>
+                <input id="monster-life-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-                <label for="monster-max-hp-input" class="block text-gray-300 font-semibold mb-1">Max HP</label>
-                <input id="monster-max-hp-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label for="monster-max-life-input" class="block text-gray-300 font-semibold mb-1">Max Life</label>
+                <input id="monster-max-life-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
         </div>
 
@@ -251,8 +251,8 @@
 
         const initialMonster = {
             name: 'White Lion',
-            currentHP: 20,
-            maxHP: 20
+            currentLife: 20,
+            maxLife: 20
         };
         
         const initialGameState = {
@@ -296,20 +296,20 @@
 
         const renderMonster = (monster) => {
             document.getElementById('monster-name').textContent = monster.name;
-            const hpText = document.getElementById('monster-hp-text');
-            const hpFill = document.getElementById('monster-hp-fill');
+            const lifeText = document.getElementById('monster-life-text');
+            const lifeFill = document.getElementById('monster-life-fill');
             
-            // Calculate HP percentage based on current and max HP
-            const hpPercentage = (monster.currentHP / monster.maxHP) * 100;
-            hpFill.style.width = `${Math.max(0, hpPercentage)}%`;
-            hpText.textContent = `${monster.currentHP} / ${monster.maxHP}`;
-            hpFill.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
-            if (hpPercentage > 50) {
-                hpFill.classList.add('bg-green-500');
-            } else if (hpPercentage > 25) {
-                hpFill.classList.add('bg-yellow-500');
+            // Calculate Life percentage based on current and max Life
+            const lifePercentage = (monster.currentLife / monster.maxLife) * 100;
+            lifeFill.style.width = `${Math.max(0, lifePercentage)}%`;
+            lifeText.textContent = `${monster.currentLife} / ${monster.maxLife}`;
+            lifeFill.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
+            if (lifePercentage > 50) {
+                lifeFill.classList.add('bg-green-500');
+            } else if (lifePercentage > 25) {
+                lifeFill.classList.add('bg-yellow-500');
             } else {
-                hpFill.classList.add('bg-red-500');
+                lifeFill.classList.add('bg-red-500');
             }
         };
 
@@ -319,8 +319,8 @@
             
             // Set values for Monster fields
             document.getElementById('monster-name-input').value = gameState.monster.name;
-            document.getElementById('monster-hp-input').value = gameState.monster.currentHP;
-            document.getElementById('monster-max-hp-input').value = gameState.monster.maxHP;
+            document.getElementById('monster-life-input').value = gameState.monster.currentLife;
+            document.getElementById('monster-max-life-input').value = gameState.monster.maxLife;
 
             // Render survivor name inputs
             gameState.survivors.forEach(survivor => {
@@ -426,14 +426,14 @@
             if (fieldId === 'year-input') {
                 gameState.year = value;
             }
-            // Update monster name or HP
+            // Update monster name or Life
             else if (fieldId === 'monster-name-input') {
                 gameState.monster.name = value;
             }
-            else if (fieldId === 'monster-hp-input') {
-                gameState.monster.currentHP = value;
-            } else if (fieldId === 'monster-max-hp-input') {
-                gameState.monster.maxHP = value;
+            else if (fieldId === 'monster-life-input') {
+                gameState.monster.currentLife = value;
+            } else if (fieldId === 'monster-max-life-input') {
+                gameState.monster.maxLife = value;
             }
             // Update survivor stats
             else {
