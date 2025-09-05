@@ -198,46 +198,72 @@
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- Firebase Setup ---
-        let app, db, auth;
+        let app = null;
+        let db = null;
+        let auth = null;
         let userId = null;
         let currentGameState = null; // Centralized state variable
         let isInitialized = false;
 
+        const showMessageBox = (message, type = 'info') => {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 left-4 p-4 rounded-lg shadow-lg block z-50 transition-all duration-300 ease-in-out`;
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-800', 'text-white');
+            } else {
+                messageBox.classList.add('bg-gray-800', 'text-white');
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('block');
+                messageBox.classList.add('hidden');
+            }, 3000);
+        };
+
         const setupFirebase = async () => {
             try {
-                // Parse Firebase config, handling potential errors
                 if (typeof __firebase_config !== 'undefined') {
                     try {
                         firebaseConfig = JSON.parse(__firebase_config);
+                        if (!firebaseConfig.projectId) {
+                            throw new Error("Firebase config is missing projectId.");
+                        }
+
+                        app = initializeApp(firebaseConfig);
+                        db = getFirestore(app);
+                        auth = getAuth(app);
+                        
+                        onAuthStateChanged(auth, async (user) => {
+                            if (user) {
+                                userId = user.uid;
+                                document.getElementById('user-id').textContent = userId;
+                                initOverlay();
+                            } else {
+                                // Fallback to an anonymous user if token is not available
+                                const anonymousUser = await signInAnonymously(auth);
+                                userId = anonymousUser.user.uid;
+                                document.getElementById('user-id').textContent = userId;
+                                initOverlay();
+                            }
+                        });
+
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                        
                     } catch (e) {
-                        throw new Error("Invalid Firebase configuration JSON.");
+                        throw new Error(`Invalid Firebase configuration: ${e.message}`);
                     }
                 } else {
-                    throw new Error("Firebase configuration is not defined.");
-                }
-
-                if (!firebaseConfig.projectId) {
-                    throw new Error("Firebase config is missing projectId.");
-                }
-
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        document.getElementById('user-id').textContent = userId;
-                    } else {
-                        userId = crypto.randomUUID();
-                    }
-                    initOverlay();
-                });
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
+                    showMessageBox("Warning: Firebase configuration not found. Running in local mode.", 'error');
+                    console.warn("Firebase configuration is not defined. Running in local mode.");
+                    userId = crypto.randomUUID();
+                    document.getElementById('user-id').textContent = userId;
+                    // Initialize the overlay with local state
+                    currentGameState = initialGameState;
+                    updateUI(currentGameState);
                 }
 
             } catch (error) {
@@ -257,20 +283,6 @@
             return doc(db, `artifacts/${appId}/users/${userId}/kdm_stats/game_state`);
         };
 
-        const showMessageBox = (message, type = 'info') => {
-            const messageBox = document.getElementById('message-box');
-            messageBox.textContent = message;
-            messageBox.className = `fixed bottom-4 left-4 p-4 rounded-lg shadow-lg block z-50 transition-all duration-300 ease-in-out`;
-            if (type === 'error') {
-                messageBox.classList.add('bg-red-800', 'text-white');
-            } else {
-                messageBox.classList.add('bg-gray-800', 'text-white');
-            }
-            setTimeout(() => {
-                messageBox.classList.remove('block');
-                messageBox.classList.add('hidden');
-            }, 3000);
-        };
 
         // --- Initial State and Data ---
         const initialSurvivors = [
@@ -379,7 +391,12 @@
         // --- Firestore Listeners and Data Flow ---
         const initOverlay = async () => {
             const gameStateRef = getGameStateRef();
-            if (!gameStateRef) return;
+            if (!gameStateRef) {
+                // If Firebase is not initialized, use local state
+                currentGameState = initialGameState;
+                updateUI(currentGameState);
+                return;
+            }
             
             onSnapshot(gameStateRef, async (doc) => {
                 if (doc.exists()) {
@@ -437,11 +454,8 @@
         document.getElementById('close-btn').addEventListener('click', toggleControlPanel);
 
         controlPanel.addEventListener('input', async (e) => {
-            if (!isInitialized || !currentGameState) return;
+            if (!currentGameState) return;
 
-            const gameStateRef = getGameStateRef();
-            if (!gameStateRef) return;
-            
             const fieldId = e.target.id;
             let value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
             
@@ -470,11 +484,20 @@
                     currentGameState.survivors[survivorIndex][statName] = value;
                 }
             }
-            try {
-                await setDoc(gameStateRef, currentGameState);
-            } catch (error) {
-                console.error("Error updating document:", error);
-                showMessageBox("Error saving data. Check console.", 'error');
+            
+            updateUI(currentGameState);
+
+            const gameStateRef = getGameStateRef();
+            if (gameStateRef) {
+                try {
+                    await setDoc(gameStateRef, currentGameState);
+                    showMessageBox("Game state saved to Firestore.");
+                } catch (error) {
+                    console.error("Error updating document:", error);
+                    showMessageBox("Error saving data to Firestore. Check console.", 'error');
+                }
+            } else {
+                console.log("Running in local mode. Data not saved to Firestore.");
             }
         });
 
