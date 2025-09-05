@@ -170,7 +170,6 @@
         // --- Firebase Setup ---
         let app, db, auth;
         let userId = null;
-        let isAuthReady = false;
 
         const setupFirebase = async () => {
             try {
@@ -182,17 +181,17 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
+                // This listener now handles all initialization after auth state is known
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                         document.getElementById('user-id').textContent = userId;
-                        isAuthReady = true;
-                        initOverlay();
                     } else {
+                        // For anonymous or unauthenticated sessions, create a temporary ID
                         userId = crypto.randomUUID();
-                        isAuthReady = true;
-                        initOverlay();
                     }
+                    // Initialize the overlay only after the user ID is set
+                    initOverlay();
                 });
 
                 if (initialAuthToken) {
@@ -336,11 +335,6 @@
 
         // --- Firestore Listeners and Data Flow ---
         const initOverlay = async () => {
-            if (!isAuthReady) {
-                // Wait for authentication to be ready
-                return;
-            }
-            
             const gameStateRef = getGameStateRef();
             if (!gameStateRef) return;
             
