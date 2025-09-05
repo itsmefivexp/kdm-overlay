@@ -213,19 +213,19 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the Canvas environment
+        // Global variables provided by the Canvas environment.
+        // We will check for their existence and handle the flow accordingly.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        let firebaseConfig;
+        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- Firebase Setup ---
+        // --- Firebase Setup and State Management ---
         let app = null;
         let db = null;
         let auth = null;
         let userId = null;
-        let currentGameState = null; // Centralized state variable
-        let isInitialized = false;
-        let isFirstLoad = true;
+        let currentGameState = null;
+        let hasDataLoaded = false;
 
         const showMessageBox = (message, type = 'info') => {
             const messageBox = document.getElementById('message-box');
@@ -243,59 +243,53 @@
         };
 
         const setupFirebase = async () => {
-            try {
-                if (typeof __firebase_config !== 'undefined') {
-                    try {
-                        firebaseConfig = JSON.parse(__firebase_config);
-                        if (!firebaseConfig.projectId) {
-                            throw new Error("Firebase config is missing projectId.");
-                        }
+            console.log("Setting up Firebase...");
+            let firebaseConfig;
 
-                        app = initializeApp(firebaseConfig);
-                        db = getFirestore(app);
-                        auth = getAuth(app);
-                        
-                        onAuthStateChanged(auth, async (user) => {
-                            if (user) {
-                                userId = user.uid;
-                                document.getElementById('user-id').textContent = userId;
-                                initOverlay();
-                            } else {
-                                // Fallback to an anonymous user if token is not available
-                                const anonymousUser = await signInAnonymously(auth);
-                                userId = anonymousUser.user.uid;
-                                document.getElementById('user-id').textContent = userId;
-                                initOverlay();
-                            }
-                        });
-
-                        if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
+            if (firebaseConfigString) {
+                try {
+                    firebaseConfig = JSON.parse(firebaseConfigString);
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            document.getElementById('user-id').textContent = userId;
+                            initDataListener();
                         } else {
-                            await signInAnonymously(auth);
+                            const anonymousUser = await signInAnonymously(auth);
+                            userId = anonymousUser.user.uid;
+                            document.getElementById('user-id').textContent = userId;
+                            initDataListener();
                         }
-                        
-                    } catch (e) {
-                        throw new Error(`Invalid Firebase configuration: ${e.message}`);
-                    }
-                } else {
-                    showMessageBox("Warning: Firebase configuration not found. Running in local mode.", 'error');
-                    console.warn("Firebase configuration is not defined. Running in local mode.");
-                    userId = crypto.randomUUID();
-                    document.getElementById('user-id').textContent = userId;
-                    // Initialize the overlay with local state
-                    currentGameState = initialGameState;
-                    updateUI(currentGameState);
-                    document.getElementById('loading-overlay').style.display = 'none';
-                }
+                    });
 
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                showMessageBox(`Error initializing Firebase: ${error.message}`, 'error');
-                document.getElementById('loading-overlay').style.display = 'none';
-            } finally {
-                isInitialized = true;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    
+                } catch (e) {
+                    console.error("Firebase initialization failed:", e);
+                    showMessageBox(`Error: Firebase initialization failed. Check console.`, 'error');
+                    fallbackToLocalMode();
+                }
+            } else {
+                console.warn("Firebase configuration not found. Running in local mode.");
+                showMessageBox("Warning: Firebase configuration not found. Running in local mode.", 'error');
+                fallbackToLocalMode();
             }
+        };
+
+        const fallbackToLocalMode = () => {
+            userId = crypto.randomUUID();
+            document.getElementById('user-id').textContent = userId;
+            currentGameState = initialGameState;
+            updateUI(currentGameState);
+            document.getElementById('loading-overlay').style.display = 'none';
         };
 
         const getGameStateRef = () => {
@@ -423,12 +417,10 @@
         };
 
         // --- Firestore Listeners and Data Flow ---
-        const initOverlay = async () => {
+        const initDataListener = async () => {
             const gameStateRef = getGameStateRef();
             if (!gameStateRef) {
-                // If Firebase is not initialized, use local state
-                currentGameState = initialGameState;
-                updateUI(currentGameState);
+                console.error("Failed to get game state reference. No Firebase connection.");
                 document.getElementById('loading-overlay').style.display = 'none';
                 return;
             }
@@ -450,14 +442,17 @@
 
                     updateUI(currentGameState);
 
-                    // Hide loading overlay only after the first successful data load
-                    if (isFirstLoad) {
+                    if (!hasDataLoaded) {
                         document.getElementById('loading-overlay').style.display = 'none';
-                        isFirstLoad = false;
+                        hasDataLoaded = true;
                     }
                 } else {
                     currentGameState = initialGameState;
                     await setDoc(gameStateRef, initialGameState);
+                    if (!hasDataLoaded) {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        hasDataLoaded = true;
+                    }
                 }
             }, (error) => {
                 console.error("Error listening to document:", error);
@@ -476,12 +471,7 @@
         const controlPanel = document.getElementById('control-panel');
         const mainOverlay = document.getElementById('main-overlay');
 
-        const toggleControlPanel = async () => {
-            if (!isInitialized) {
-                showMessageBox("App is initializing. Please wait a moment.", 'info');
-                return;
-            }
-
+        const toggleControlPanel = () => {
             const isVisible = controlPanel.classList.toggle('is-visible');
             mainOverlay.classList.toggle('blur-sm');
 
@@ -576,7 +566,7 @@
                     await setDoc(gameStateRef, currentGameState);
                     showMessageBox("Game state saved to Firestore.");
                 } catch (error) {
-                    console.error("Error updating document:", error);
+                    console.error("Error saving document:", error);
                     showMessageBox("Error saving data to Firestore. Check console.", 'error');
                 }
             } else {
