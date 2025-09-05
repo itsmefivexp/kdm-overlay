@@ -67,7 +67,7 @@
             min-height: 120px;
         }
 
-        .loading-overlay, .error-overlay {
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -119,14 +119,6 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
-    </div>
-
-    <!-- Error Overlay -->
-    <div id="error-overlay" class="error-overlay hidden">
-        <div class="bg-red-900 text-white p-8 rounded-lg text-center max-w-sm">
-            <h2 class="text-2xl font-bold mb-4">Connection Failed</h2>
-            <p id="error-message">Could not connect to the database. The app is running in local mode. Your changes will not be saved across page refreshes.</p>
-        </div>
     </div>
 
     <!-- Main Overlay Container -->
@@ -255,11 +247,6 @@
             document.getElementById('loading-overlay').style.display = 'none';
         };
 
-        const showErrorOverlay = (message) => {
-            document.getElementById('error-message').textContent = message;
-            document.getElementById('error-overlay').classList.remove('hidden');
-        };
-
         const setupFirebase = async () => {
             if (firebaseConfigString && initialAuthToken && appId) {
                 try {
@@ -284,12 +271,12 @@
 
                 } catch (e) {
                     console.error("Firebase initialization failed:", e);
-                    showErrorOverlay("Connection failed. Check console for details.");
+                    showMessageBox("Connection failed. Check console for details.", 'error');
                     fallbackToLocalMode();
                 }
             } else {
                 console.warn("Firebase configuration not found. Running in local mode.");
-                showErrorOverlay("Could not find database credentials. The app is running in local mode.");
+                showMessageBox("Could not find database credentials. The app is running in local mode.", 'error');
                 fallbackToLocalMode();
             }
         };
