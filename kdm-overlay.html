@@ -160,7 +160,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -170,6 +170,7 @@
         // --- Firebase Setup ---
         let app, db, auth;
         let userId = null;
+        let currentGameState = null; // Centralized state variable
 
         const setupFirebase = async () => {
             try {
@@ -208,7 +209,6 @@
 
         const getGameStateRef = () => {
             if (!db || !userId) {
-                console.error("Database or User ID not initialized.");
                 return null;
             }
             return doc(db, `artifacts/${appId}/users/${userId}/kdm_stats/game_state`);
@@ -349,14 +349,15 @@
                         return { ...initialSurvivor, ...fetchedSurvivor };
                     });
                     
-                    const gameState = {
+                    currentGameState = {
                         ...initialGameState,
                         ...fetchedState,
                         survivors: updatedSurvivors
                     };
 
-                    updateUI(gameState);
+                    updateUI(currentGameState);
                 } else {
+                    currentGameState = initialGameState;
                     // Document doesn't exist, create it from the initial state
                     await setDoc(gameStateRef, initialGameState);
                 }
@@ -379,17 +380,17 @@
         const mainOverlay = document.getElementById('main-overlay');
 
         const toggleControlPanel = async () => {
+            if (!currentGameState) {
+                showMessageBox("Initializing. Please wait a moment.", 'info');
+                return;
+            }
+
             const isVisible = controlPanel.classList.toggle('is-visible');
             mainOverlay.classList.toggle('blur-sm');
 
             if (isVisible) {
-                // If opening, populate the control panel with current data
-                const docSnap = await getDoc(getGameStateRef());
-                if (docSnap.exists()) {
-                    renderControlPanel(docSnap.data());
-                }
-            } else {
-                // If closing, the input event listeners have already saved the data
+                // Use the cached state instead of fetching again
+                renderControlPanel(currentGameState);
             }
         };
 
@@ -403,43 +404,40 @@
         document.getElementById('close-btn').addEventListener('click', toggleControlPanel);
 
         controlPanel.addEventListener('input', async (e) => {
-            if (!db || !userId) return;
+            if (!currentGameState) return;
 
             const gameStateRef = getGameStateRef();
+            if (!gameStateRef) return;
+            
             const fieldId = e.target.id;
             const value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
             
-            // Fetch the current game state
-            const docSnap = await getDoc(gameStateRef);
-            if (!docSnap.exists()) return;
-            let gameState = docSnap.data();
-
-            // Update game year
+            // Update the global state object directly
             if (fieldId === 'year-input') {
-                gameState.year = value;
+                currentGameState.year = value;
             }
             // Update monster name or Life
             else if (fieldId === 'monster-name-input') {
-                gameState.monster.name = value;
+                currentGameState.monster.name = value;
             }
             else if (fieldId === 'monster-life-input') {
-                gameState.monster.currentLife = value;
+                currentGameState.monster.currentLife = value;
             } else if (fieldId === 'monster-max-life-input') {
-                gameState.monster.maxLife = value;
+                currentGameState.monster.maxLife = value;
             }
             // Update survivor stats
             else if (fieldId.startsWith('survivor-') && fieldId.endsWith('-input')) {
                 const parts = fieldId.split('-');
                 const statName = parts[parts.length - 2];
                 const survivorId = parts.slice(0, -2).join('-');
-                const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
+                const survivorIndex = currentGameState.survivors.findIndex(s => s.id === survivorId);
                 if (survivorIndex !== -1) {
                     // Correctly update the survivor stat
-                    gameState.survivors[survivorIndex][statName] = value;
+                    currentGameState.survivors[survivorIndex][statName] = value;
                 }
             }
             try {
-                await setDoc(gameStateRef, gameState);
+                await setDoc(gameStateRef, currentGameState);
             } catch (error) {
                 console.error("Error updating document:", error);
                 showMessageBox("Error saving data. Check console.", 'error');
