@@ -55,6 +55,11 @@
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            /* Added to make the panel fit the screen and be scrollable */
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh; /* Set a max height */
+            overflow-y: auto; /* Enable vertical scrolling */
         }
         .control-panel.is-visible {
             visibility: visible;
