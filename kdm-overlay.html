@@ -359,17 +359,25 @@
 
             // Update survivors
             renderSurvivors(gameState.survivors);
-
-            // Update control panel
-            renderControlPanel(gameState);
         };
 
         // --- Control Panel Logic ---
         const controlPanel = document.getElementById('control-panel');
         const mainOverlay = document.getElementById('main-overlay');
-        const toggleControlPanel = () => {
-            controlPanel.classList.toggle('is-visible');
+
+        const toggleControlPanel = async () => {
+            const isVisible = controlPanel.classList.toggle('is-visible');
             mainOverlay.classList.toggle('blur-sm');
+
+            if (isVisible) {
+                // If opening, populate the control panel with current data
+                const docSnap = await getDoc(getGameStateRef());
+                if (docSnap.exists()) {
+                    renderControlPanel(docSnap.data());
+                }
+            } else {
+                // If closing, the input event listeners have already saved the data
+            }
         };
 
         // Event listeners for control panel
