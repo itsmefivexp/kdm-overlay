@@ -225,6 +225,7 @@
         let userId = null;
         let currentGameState = null; // Centralized state variable
         let isInitialized = false;
+        let isFirstLoad = true;
 
         const showMessageBox = (message, type = 'info') => {
             const messageBox = document.getElementById('message-box');
@@ -285,14 +286,14 @@
                     // Initialize the overlay with local state
                     currentGameState = initialGameState;
                     updateUI(currentGameState);
+                    document.getElementById('loading-overlay').style.display = 'none';
                 }
 
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
                 showMessageBox(`Error initializing Firebase: ${error.message}`, 'error');
-            } finally {
-                // Ensure the loading overlay is always hidden
                 document.getElementById('loading-overlay').style.display = 'none';
+            } finally {
                 isInitialized = true;
             }
         };
@@ -428,6 +429,7 @@
                 // If Firebase is not initialized, use local state
                 currentGameState = initialGameState;
                 updateUI(currentGameState);
+                document.getElementById('loading-overlay').style.display = 'none';
                 return;
             }
             
@@ -447,10 +449,20 @@
                     };
 
                     updateUI(currentGameState);
+
+                    // Hide loading overlay only after the first successful data load
+                    if (isFirstLoad) {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        isFirstLoad = false;
+                    }
                 } else {
                     currentGameState = initialGameState;
                     await setDoc(gameStateRef, initialGameState);
                 }
+            }, (error) => {
+                console.error("Error listening to document:", error);
+                showMessageBox("Error loading data from Firestore. Check console for details.", 'error');
+                document.getElementById('loading-overlay').style.display = 'none';
             });
         };
 
