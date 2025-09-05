@@ -42,7 +42,6 @@
             width: 4rem;
             text-align: center;
         }
-        /* New styling for the control panel */
         .control-panel {
             position: fixed;
             top: 50%;
@@ -55,11 +54,10 @@
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            /* Added to make the panel fit the screen and be scrollable */
             width: 90%;
             max-width: 500px;
-            max-height: 90vh; /* Set a max height */
-            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .control-panel.is-visible {
             visibility: visible;
@@ -69,7 +67,7 @@
             min-height: 120px;
         }
 
-        .loading-overlay {
+        .loading-overlay, .error-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -107,11 +105,11 @@
             margin-left: 0.5rem;
         }
         .injury-low {
-            background-color: #fca5a5; /* Red-300 */
-            color: #7f1d1d; /* Red-900 */
+            background-color: #fca5a5;
+            color: #7f1d1d;
         }
         .injury-high {
-            background-color: #b91c1c; /* Red-700 */
+            background-color: #b91c1c;
             color: white;
         }
     </style>
@@ -121,6 +119,14 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Error Overlay -->
+    <div id="error-overlay" class="error-overlay hidden">
+        <div class="bg-red-900 text-white p-8 rounded-lg text-center max-w-sm">
+            <h2 class="text-2xl font-bold mb-4">Connection Failed</h2>
+            <p id="error-message">Could not connect to the database. The app is running in local mode. Your changes will not be saved across page refreshes.</p>
+        </div>
     </div>
 
     <!-- Main Overlay Container -->
@@ -173,6 +179,11 @@
     <div id="control-panel" class="control-panel w-full max-w-lg p-8 rounded-lg">
         <h2 class="text-3xl font-bold mb-4 text-center">Control Panel</h2>
 
+        <!-- Warning message for local mode -->
+        <div id="local-mode-warning" class="hidden bg-yellow-900 text-yellow-200 p-3 rounded-md mb-4 text-center text-sm">
+            Not connected to Firestore. Your changes will not be saved.
+        </div>
+
         <!-- General Game Info Controls -->
         <div class="mb-6 border-b border-gray-700 pb-4">
             <label for="year-input" class="block text-gray-300 font-semibold mb-2">Game Year</label>
@@ -213,18 +224,16 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the Canvas environment.
-        // We will check for their existence and handle the flow accordingly.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : null;
         const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- Firebase Setup and State Management ---
         let app = null;
         let db = null;
         let auth = null;
         let userId = null;
         let currentGameState = null;
+        let isConnected = false;
         let hasDataLoaded = false;
 
         const showMessageBox = (message, type = 'info') => {
@@ -242,13 +251,19 @@
             }, 3000);
         };
 
-        const setupFirebase = async () => {
-            console.log("Setting up Firebase...");
-            let firebaseConfig;
+        const hideLoadingOverlay = () => {
+            document.getElementById('loading-overlay').style.display = 'none';
+        };
 
-            if (firebaseConfigString) {
+        const showErrorOverlay = (message) => {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-overlay').classList.remove('hidden');
+        };
+
+        const setupFirebase = async () => {
+            if (firebaseConfigString && initialAuthToken && appId) {
                 try {
-                    firebaseConfig = JSON.parse(firebaseConfigString);
+                    const firebaseConfig = JSON.parse(firebaseConfigString);
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
@@ -259,27 +274,22 @@
                             document.getElementById('user-id').textContent = userId;
                             initDataListener();
                         } else {
-                            const anonymousUser = await signInAnonymously(auth);
-                            userId = anonymousUser.user.uid;
-                            document.getElementById('user-id').textContent = userId;
-                            initDataListener();
+                            await signInAnonymously(auth);
                         }
                     });
 
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    isConnected = true;
+                    console.log("Successfully connected to Firestore.");
+
                 } catch (e) {
                     console.error("Firebase initialization failed:", e);
-                    showMessageBox(`Error: Firebase initialization failed. Check console.`, 'error');
+                    showErrorOverlay("Connection failed. Check console for details.");
                     fallbackToLocalMode();
                 }
             } else {
                 console.warn("Firebase configuration not found. Running in local mode.");
-                showMessageBox("Warning: Firebase configuration not found. Running in local mode.", 'error');
+                showErrorOverlay("Could not find database credentials. The app is running in local mode.");
                 fallbackToLocalMode();
             }
         };
@@ -289,9 +299,11 @@
             document.getElementById('user-id').textContent = userId;
             currentGameState = initialGameState;
             updateUI(currentGameState);
-            document.getElementById('loading-overlay').style.display = 'none';
+            hideLoadingOverlay();
+            isConnected = false;
+            document.getElementById('local-mode-warning').classList.remove('hidden');
         };
-
+        
         const getGameStateRef = () => {
             if (!db || !userId) {
                 return null;
@@ -299,8 +311,6 @@
             return doc(db, `artifacts/${appId}/users/${userId}/kdm_stats/game_state`);
         };
 
-
-        // --- Initial State and Data ---
         const initialSurvivors = [
             { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
             { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
@@ -320,7 +330,6 @@
             monster: initialMonster
         };
 
-        // --- UI Rendering Functions ---
         const renderSurvivors = (survivors) => {
             const container = document.getElementById('survivor-grid');
             container.innerHTML = '';
@@ -357,7 +366,6 @@
             const lifeText = document.getElementById('monster-life-text');
             const lifeFill = document.getElementById('monster-life-fill');
             
-            // Calculate Life percentage based on current and max Life
             const lifePercentage = (monster.currentLife / monster.maxLife) * 100;
             lifeFill.style.width = `${Math.max(0, lifePercentage)}%`;
             lifeText.textContent = `${monster.currentLife} / ${monster.maxLife}`;
@@ -375,12 +383,10 @@
             const controlsContainer = document.getElementById('survivor-controls');
             controlsContainer.innerHTML = '';
             
-            // Set values for Monster fields
             document.getElementById('monster-name-input').value = gameState.monster.name;
             document.getElementById('monster-life-input').value = gameState.monster.currentLife;
             document.getElementById('monster-max-life-input').value = gameState.monster.maxLife;
 
-            // Render survivor name inputs
             gameState.survivors.forEach(survivor => {
                 const survivorDiv = document.createElement('div');
                 survivorDiv.className = "mb-4 border-b border-gray-700 pb-2";
@@ -389,7 +395,6 @@
                 `;
                 controlsContainer.appendChild(survivorDiv);
                 
-                // Add stat controls
                 const statContainer = document.createElement('div');
                 statContainer.className = "grid grid-cols-2 gap-4 mt-2";
                 
@@ -399,8 +404,6 @@
                 stats.forEach(stat => {
                     const isInjuryPart = injuryParts.includes(stat);
                     const isMaxBleed = stat === 'maxBleed';
-                    const isNumerical = !isInjuryPart;
-
                     let labelText = stat.replace(/([A-Z])/g, ' $1').trim();
                     if (isMaxBleed) labelText = 'Max Bleed';
 
@@ -416,19 +419,16 @@
             });
         };
 
-        // --- Firestore Listeners and Data Flow ---
         const initDataListener = async () => {
             const gameStateRef = getGameStateRef();
             if (!gameStateRef) {
-                console.error("Failed to get game state reference. No Firebase connection.");
-                document.getElementById('loading-overlay').style.display = 'none';
+                fallbackToLocalMode();
                 return;
             }
             
-            onSnapshot(gameStateRef, async (doc) => {
+            const unsubscribe = onSnapshot(gameStateRef, async (doc) => {
                 if (doc.exists()) {
                     const fetchedState = doc.data();
-                    
                     const updatedSurvivors = initialSurvivors.map(initialSurvivor => {
                         const fetchedSurvivor = fetchedState.survivors.find(s => s.id === initialSurvivor.id) || {};
                         return { ...initialSurvivor, ...fetchedSurvivor };
@@ -443,21 +443,23 @@
                     updateUI(currentGameState);
 
                     if (!hasDataLoaded) {
-                        document.getElementById('loading-overlay').style.display = 'none';
+                        hideLoadingOverlay();
                         hasDataLoaded = true;
                     }
                 } else {
                     currentGameState = initialGameState;
                     await setDoc(gameStateRef, initialGameState);
                     if (!hasDataLoaded) {
-                        document.getElementById('loading-overlay').style.display = 'none';
+                        hideLoadingOverlay();
                         hasDataLoaded = true;
                     }
                 }
             }, (error) => {
                 console.error("Error listening to document:", error);
                 showMessageBox("Error loading data from Firestore. Check console for details.", 'error');
-                document.getElementById('loading-overlay').style.display = 'none';
+                hideLoadingOverlay();
+                unsubscribe();
+                fallbackToLocalMode();
             });
         };
 
@@ -467,7 +469,6 @@
             renderSurvivors(gameState.survivors);
         };
 
-        // --- Control Panel Logic ---
         const controlPanel = document.getElementById('control-panel');
         const mainOverlay = document.getElementById('main-overlay');
 
@@ -511,8 +512,8 @@
                 
                 updateUI(currentGameState);
 
-                const gameStateRef = getGameStateRef();
-                if (gameStateRef) {
+                if (isConnected) {
+                    const gameStateRef = getGameStateRef();
                     try {
                         await setDoc(gameStateRef, currentGameState);
                         showMessageBox("Game state saved to Firestore.");
@@ -532,7 +533,6 @@
             const fieldId = e.target.id;
             let value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
             
-            // Check for NaN and set to 0 to prevent Firestore errors
             if (e.target.type === 'number' && isNaN(value)) {
                 value = 0;
             }
@@ -560,8 +560,8 @@
             
             updateUI(currentGameState);
 
-            const gameStateRef = getGameStateRef();
-            if (gameStateRef) {
+            if (isConnected) {
+                const gameStateRef = getGameStateRef();
                 try {
                     await setDoc(gameStateRef, currentGameState);
                     showMessageBox("Game state saved to Firestore.");
