@@ -42,6 +42,7 @@
             width: 4rem;
             text-align: center;
         }
+        /* New styling for the control panel */
         .control-panel {
             position: fixed;
             top: 50%;
@@ -51,7 +52,13 @@
             background: rgba(17, 24, 39, 0.95);
             border: 2px solid #4b5563;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
-            display: none;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .control-panel.is-visible {
+            visibility: visible;
+            opacity: 1;
         }
         .monster-stats {
             min-height: 120px;
@@ -361,9 +368,8 @@
         const controlPanel = document.getElementById('control-panel');
         const mainOverlay = document.getElementById('main-overlay');
         const toggleControlPanel = () => {
-            const isVisible = controlPanel.style.display === 'block';
-            controlPanel.style.display = isVisible ? 'none' : 'block';
-            mainOverlay.classList.toggle('blur-sm', !isVisible);
+            controlPanel.classList.toggle('is-visible');
+            mainOverlay.classList.toggle('blur-sm');
         };
 
         // Event listeners for control panel
