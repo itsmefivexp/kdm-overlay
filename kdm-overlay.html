@@ -68,9 +68,39 @@
         .monster-stats {
             min-height: 120px;
         }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
 
     <!-- Main Overlay Container -->
     <div id="main-overlay" class="container w-full max-w-7xl mx-auto rounded-lg p-6 md:p-10">
@@ -171,6 +201,7 @@
         let app, db, auth;
         let userId = null;
         let currentGameState = null; // Centralized state variable
+        let isInitialized = false;
 
         const setupFirebase = async () => {
             try {
@@ -182,16 +213,13 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // This listener now handles all initialization after auth state is known
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                         document.getElementById('user-id').textContent = userId;
                     } else {
-                        // For anonymous or unauthenticated sessions, create a temporary ID
                         userId = crypto.randomUUID();
                     }
-                    // Initialize the overlay only after the user ID is set
                     initOverlay();
                 });
 
@@ -338,12 +366,10 @@
             const gameStateRef = getGameStateRef();
             if (!gameStateRef) return;
             
-            // Listen for real-time updates and handle initial state
             onSnapshot(gameStateRef, async (doc) => {
                 if (doc.exists()) {
                     const fetchedState = doc.data();
                     
-                    // Merge fetched data with initial state to ensure all fields are present
                     const updatedSurvivors = initialSurvivors.map(initialSurvivor => {
                         const fetchedSurvivor = fetchedState.survivors.find(s => s.id === initialSurvivor.id) || {};
                         return { ...initialSurvivor, ...fetchedSurvivor };
@@ -358,20 +384,20 @@
                     updateUI(currentGameState);
                 } else {
                     currentGameState = initialGameState;
-                    // Document doesn't exist, create it from the initial state
                     await setDoc(gameStateRef, initialGameState);
+                }
+                
+                // Hide loading overlay once data is loaded for the first time
+                if (!isInitialized) {
+                    isInitialized = true;
+                    document.getElementById('loading-overlay').style.display = 'none';
                 }
             });
         };
 
         const updateUI = (gameState) => {
-            // Update game year
             document.getElementById('game-year').textContent = `Lantern Year: ${gameState.year}`;
-
-            // Update monster stats
             renderMonster(gameState.monster);
-
-            // Update survivors
             renderSurvivors(gameState.survivors);
         };
 
@@ -380,8 +406,8 @@
         const mainOverlay = document.getElementById('main-overlay');
 
         const toggleControlPanel = async () => {
-            if (!currentGameState) {
-                showMessageBox("Initializing. Please wait a moment.", 'info');
+            if (!isInitialized) {
+                showMessageBox("App is initializing. Please wait a moment.", 'info');
                 return;
             }
 
@@ -389,12 +415,10 @@
             mainOverlay.classList.toggle('blur-sm');
 
             if (isVisible) {
-                // Use the cached state instead of fetching again
                 renderControlPanel(currentGameState);
             }
         };
 
-        // Event listeners for control panel
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 toggleControlPanel();
@@ -404,19 +428,22 @@
         document.getElementById('close-btn').addEventListener('click', toggleControlPanel);
 
         controlPanel.addEventListener('input', async (e) => {
-            if (!currentGameState) return;
+            if (!isInitialized || !currentGameState) return;
 
             const gameStateRef = getGameStateRef();
             if (!gameStateRef) return;
             
             const fieldId = e.target.id;
-            const value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
+            let value = e.target.type === 'number' ? parseInt(e.target.value, 10) : e.target.value;
             
-            // Update the global state object directly
+            // Check for NaN and set to 0 to prevent Firestore errors
+            if (e.target.type === 'number' && isNaN(value)) {
+                value = 0;
+            }
+            
             if (fieldId === 'year-input') {
                 currentGameState.year = value;
             }
-            // Update monster name or Life
             else if (fieldId === 'monster-name-input') {
                 currentGameState.monster.name = value;
             }
@@ -425,14 +452,12 @@
             } else if (fieldId === 'monster-max-life-input') {
                 currentGameState.monster.maxLife = value;
             }
-            // Update survivor stats
             else if (fieldId.startsWith('survivor-') && fieldId.endsWith('-input')) {
                 const parts = fieldId.split('-');
                 const statName = parts[parts.length - 2];
                 const survivorId = parts.slice(0, -2).join('-');
                 const survivorIndex = currentGameState.survivors.findIndex(s => s.id === survivorId);
                 if (survivorIndex !== -1) {
-                    // Correctly update the survivor stat
                     currentGameState.survivors[survivorIndex][statName] = value;
                 }
             }
@@ -444,7 +469,6 @@
             }
         });
 
-        // Initialize the app on window load
         window.onload = setupFirebase;
     </script>
 </body>
