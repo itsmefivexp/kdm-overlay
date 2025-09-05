@@ -194,7 +194,7 @@
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        let firebaseConfig;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- Firebase Setup ---
@@ -205,8 +205,19 @@
 
         const setupFirebase = async () => {
             try {
+                // Parse Firebase config, handling potential errors
+                if (typeof __firebase_config !== 'undefined') {
+                    try {
+                        firebaseConfig = JSON.parse(__firebase_config);
+                    } catch (e) {
+                        throw new Error("Invalid Firebase configuration JSON.");
+                    }
+                } else {
+                    throw new Error("Firebase configuration is not defined.");
+                }
+
                 if (!firebaseConfig.projectId) {
-                    throw new Error("Firebase config is not defined. Please check your environment variables.");
+                    throw new Error("Firebase config is missing projectId.");
                 }
 
                 app = initializeApp(firebaseConfig);
@@ -231,7 +242,11 @@
 
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
-                showMessageBox("Error initializing Firebase. Check the console for details.", 'error');
+                showMessageBox(`Error initializing Firebase: ${error.message}`, 'error');
+            } finally {
+                // Ensure the loading overlay is always hidden
+                document.getElementById('loading-overlay').style.display = 'none';
+                isInitialized = true;
             }
         };
 
@@ -385,12 +400,6 @@
                 } else {
                     currentGameState = initialGameState;
                     await setDoc(gameStateRef, initialGameState);
-                }
-                
-                // Hide loading overlay once data is loaded for the first time
-                if (!isInitialized) {
-                    isInitialized = true;
-                    document.getElementById('loading-overlay').style.display = 'none';
                 }
             });
         };
