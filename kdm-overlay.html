@@ -243,10 +243,10 @@
 
         // --- Initial State and Data ---
         const initialSurvivors = [
-            { id: 'survivor-1', name: 'Survivor 1', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
-            { id: 'survivor-2', name: 'Survivor 2', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
-            { id: 'survivor-3', name: 'Survivor 3', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
-            { id: 'survivor-4', name: 'Survivor 4', courage: 0, understanding: 0, strength: 0, accuracy: 0, evasion: 0, luck: 0, speed: 0, insanity: 0, health: 1, maxHealth: 1 },
+            { id: 'survivor-1', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 5, maxBleed: 5 },
+            { id: 'survivor-2', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 5, maxBleed: 5 },
+            { id: 'survivor-3', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 5, maxBleed: 5 },
+            { id: 'survivor-4', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 5, maxBleed: 5 },
         ];
 
         const initialMonster = {
@@ -272,20 +272,19 @@
                 card.innerHTML = `
                     <p class="text-xl font-bold mb-2">${survivor.name}</p>
                     <div class="grid grid-cols-2 gap-2 text-sm text-gray-300">
-                        <p>Courage: <span id="${survivor.id}-courage">${survivor.courage}</span></p>
-                        <p>Understanding: <span id="${survivor.id}-understanding">${survivor.understanding}</span></p>
-                        <p>Strength: <span id="${survivor.id}-strength">${survivor.strength}</span></p>
-                        <p>Accuracy: <span id="${survivor.id}-accuracy">${survivor.accuracy}</span></p>
-                        <p>Evasion: <span id="${survivor.id}-evasion">${survivor.evasion}</span></p>
-                        <p>Luck: <span id="${survivor.id}-luck">${survivor.luck}</span></p>
-                        <p>Speed: <span id="${survivor.id}-speed">${survivor.speed}</span></p>
+                        <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
                         <p>Insanity: <span id="${survivor.id}-insanity">${survivor.insanity}</span></p>
+                        <p>Head: <span id="${survivor.id}-head">${survivor.head}</span></p>
+                        <p>Body: <span id="${survivor.id}-body">${survivor.body}</span></p>
+                        <p>Hands: <span id="${survivor.id}-hands">${survivor.hands}</span></p>
+                        <p>Feet: <span id="${survivor.id}-feet">${survivor.feet}</span></p>
+                        <p>Waist: <span id="${survivor.id}-waist">${survivor.waist}</span></p>
                     </div>
                     <div class="mt-4">
-                        <label class="text-sm text-gray-400">Health: <span id="${survivor.id}-hp-text">${survivor.health} / ${survivor.maxHealth}</span></label>
+                        <label class="text-sm text-gray-400">Bleed: <span id="${survivor.id}-bleed-text">${survivor.bleed} / ${survivor.maxBleed}</span></label>
                         <div class="relative pt-1">
                             <div class="overflow-hidden h-3 flex text-xs rounded bg-gray-600">
-                                <div id="${survivor.id}-hp-fill" style="width: ${survivor.health / survivor.maxHealth * 100}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-300"></div>
+                                <div id="${survivor.id}-bleed-fill" style="width: ${survivor.bleed / survivor.maxBleed * 100}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-300"></div>
                             </div>
                         </div>
                     </div>
@@ -442,6 +441,7 @@
                 const survivorId = parts.slice(0, -2).join('-');
                 const survivorIndex = gameState.survivors.findIndex(s => s.id === survivorId);
                 if (survivorIndex !== -1) {
+                    // Correctly update the survivor stat
                     gameState.survivors[survivorIndex][statName] = value;
                 }
             }
