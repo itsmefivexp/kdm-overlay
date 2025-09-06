@@ -174,7 +174,6 @@
         <!-- General info and Footer -->
         <footer class="text-center mt-6 text-gray-500 text-sm">
             <p>Overlay powered by Firestore. Press <kbd>Esc</kbd> to toggle controls.</p>
-            <p>Your User ID: <span id="user-id"></span></p>
         </footer>
     </div>
 
@@ -224,29 +223,25 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // IMPORTANT: The variables below are provided by the collaborative environment.
-        // If you are running this file locally, they will be undefined.
-        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Function to get the appId from the URL query string
-        const getAppIdFromUrl = () => {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('appId');
-        };
-
-        const appIdFromUrl = getAppIdFromUrl();
+        // IMPORTANT: PASTE YOUR FIREBASE CONFIG HERE
+        // It should look something like the example below.
+        // Get this from the Firebase Console when you set up your project.
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZWJ-41VDkBrfwoup1TfBeG_eCh6wDfJk",
+            authDomain: "kdm-overlay-partduex.firebaseapp.com",
+            projectId: "kdm-overlay-partduex",
+            storageBucket: "kdm-overlay-partduex.firebasestorage.app",
+            messagingSenderId: "975715726701",
+            appId: "1:975715726701:web:08f846b03d19603e85d664",
+            measurementId: "G-1GNQXZD29F"
+            };
 
         let app = null;
         let db = null;
-        let auth = null;
-        let userId = null;
         let currentGameState = null;
         let isConnected = false;
-        let hasDataLoaded = false;
         
         const showMessageBox = (message, type = 'info') => {
             const messageBox = document.getElementById('message-box');
@@ -267,60 +262,30 @@
             document.getElementById('loading-overlay').style.display = 'none';
         };
 
-        const setupFirebase = async () => {
-            const appKey = appIdFromUrl;
-
-            if (firebaseConfigString && appKey) {
+        const setupFirebase = () => {
+            // Check if all necessary Firebase config fields have been provided
+            const isConfigValid = Object.values(firebaseConfig).every(val => typeof val === 'string' && val.length > 0 && !val.includes('YOUR_'));
+            
+            if (isConfigValid) {
                 try {
-                    const firebaseConfig = JSON.parse(firebaseConfigString);
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
-                    auth = getAuth(app);
-                    
-                    // The onAuthStateChanged listener will handle all sign-in logic
-                    onAuthStateChanged(auth, async (user) => {
-                        if (user) {
-                            // A user is signed in.
-                            userId = user.uid;
-                            document.getElementById('user-id').textContent = userId;
-                            document.getElementById('local-mode-warning').classList.add('hidden');
-                            isConnected = true;
-                            initDataListener(appKey);
-                            console.log("Successfully connected to Firestore.");
-                        } else {
-                            // No user is signed in.
-                            if (initialAuthToken) {
-                                // Use the provided custom token if available
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                // Fallback to anonymous sign-in
-                                await signInAnonymously(auth);
-                            }
-                        }
-                        
-                        // Hide the loading overlay after the initial auth state check is complete.
-                        // This prevents a flash of content if authentication is slow.
-                        if (!hasDataLoaded) {
-                            hideLoadingOverlay();
-                            hasDataLoaded = true;
-                        }
-                    });
-
+                    isConnected = true;
+                    initDataListener();
+                    console.log("Successfully connected to Firestore.");
                 } catch (e) {
                     console.error("Firebase initialization failed:", e);
                     showMessageBox("Connection failed. Check console for details.", 'error');
                     fallbackToLocalMode();
                 }
             } else {
-                console.warn("Firebase configuration not found. Running in local mode.");
-                showMessageBox("Could not find database credentials. The app is running in local mode.", 'error');
+                console.warn("Firebase configuration is incomplete. Running in local mode.");
+                showMessageBox("Please add your Firebase config to the code.", 'error');
                 fallbackToLocalMode();
             }
         };
 
         const fallbackToLocalMode = () => {
-            userId = 'Not Connected';
-            document.getElementById('user-id').textContent = userId;
             currentGameState = initialGameState;
             updateUI(currentGameState);
             hideLoadingOverlay();
@@ -329,11 +294,12 @@
         };
         
         // This function now points to a public, shared location
-        const getGameStateRef = (appKey) => {
-            if (!db || !appKey) {
+        const getGameStateRef = () => {
+            if (!db) {
                 return null;
             }
-            return doc(db, `artifacts/${appKey}/public/data/kdm_stats/game_state`);
+            // Use a hardcoded path for public access
+            return doc(db, 'kdm_stats/game_state');
         };
 
         const initialSurvivors = [
@@ -408,6 +374,7 @@
             const controlsContainer = document.getElementById('survivor-controls');
             controlsContainer.innerHTML = '';
             
+            document.getElementById('year-input').value = gameState.year;
             document.getElementById('monster-name-input').value = gameState.monster.name;
             document.getElementById('monster-life-input').value = gameState.monster.currentLife;
             document.getElementById('monster-max-life-input').value = gameState.monster.maxLife;
@@ -444,8 +411,8 @@
             });
         };
 
-        const initDataListener = async (appKey) => {
-            const gameStateRef = getGameStateRef(appKey);
+        const initDataListener = () => {
+            const gameStateRef = getGameStateRef();
             if (!gameStateRef) {
                 fallbackToLocalMode();
                 return;
@@ -466,10 +433,11 @@
                     };
 
                     updateUI(currentGameState);
-
+                    hideLoadingOverlay();
                 } else {
                     currentGameState = initialGameState;
                     await setDoc(gameStateRef, initialGameState);
+                    hideLoadingOverlay();
                 }
             }, (error) => {
                 console.error("Error listening to document:", error);
@@ -529,7 +497,7 @@
                 updateUI(currentGameState);
 
                 if (isConnected) {
-                    const gameStateRef = getGameStateRef(appIdFromUrl);
+                    const gameStateRef = getGameStateRef();
                     try {
                         await setDoc(gameStateRef, currentGameState);
                         showMessageBox("Game state saved to Firestore.");
@@ -577,7 +545,7 @@
             updateUI(currentGameState);
 
             if (isConnected) {
-                const gameStateRef = getGameStateRef(appIdFromUrl);
+                const gameStateRef = getGameStateRef();
                 try {
                     await setDoc(gameStateRef, currentGameState);
                     showMessageBox("Game state saved to Firestore.");
