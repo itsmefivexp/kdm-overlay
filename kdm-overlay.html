@@ -34,9 +34,9 @@
             gap: 1rem;
         }
         .survivor-card {
-            flex-basis: 25%;
+            flex-basis: 22.5%;
             flex-shrink: 0;
-            min-width: 250px;
+            min-width: 225px;
         }
         .stat-input {
             width: 4rem;
@@ -184,12 +184,12 @@
             </div>
             
             <!-- Survivor and Monster cards -->
-            <div id="game-cards" class="flex gap-6 justify-start overflow-x-auto whitespace-nowrap w-[120%]">
+            <div id="game-cards" class="flex gap-6 justify-start overflow-x-auto whitespace-nowrap w-full">
                 <!-- Survivor cards will be dynamically inserted here -->
                 <div id="survivor-grid" class="survivor-section"></div>
                 
                 <!-- Monster Card -->
-                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg survivor-card ml-10">
+                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg survivor-card">
                     <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
                     <div class="mb-2">
                         <label class="text-sm text-gray-400" for="monster-life">Life</label>
