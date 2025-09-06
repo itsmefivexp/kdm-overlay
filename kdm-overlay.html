@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
     <style>
+        /* Base styles for the body and main container */
         body {
             font-family: 'Uncial Antiqua', serif;
             color: #f3f4f6;
@@ -20,17 +21,10 @@
             min-height: 100vh;
         }
 
-        @media (min-width: 768px) {
-            body {
-                padding: 2rem;
-            }
-        }
-
         .container {
             width: 100%;
             max-width: 84rem;
-            margin-left: auto;
-            margin-right: auto;
+            margin: auto;
             border: 2px solid #555;
             background: rgba(0, 0, 0, 0.6);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
@@ -39,49 +33,170 @@
             padding: 1.5rem;
         }
         
+        .blur-sm {
+            filter: blur(4px);
+        }
+
+        /* Responsive padding for the main container */
         @media (min-width: 768px) {
+            body {
+                padding: 2rem;
+            }
             .container {
                 padding: 2.5rem;
             }
         }
 
-        .stat-bar {
-            background-color: #374151;
-            border: 1px solid #4b5563;
+        /* Header and text styles */
+        .text-center { text-align: center; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .text-5xl { font-size: 3rem; }
+        .font-bold { font-weight: 700; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .tracking-wide { letter-spacing: 0.025em; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .font-semibold { font-weight: 600; }
+        .text-gray-400 { color: #9ca3af; }
+
+        /* Main content layout */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
         }
         
-        .stat-fill {
-            transition: width 0.3s ease-in-out;
+        @media (min-width: 640px) {
+            .main-content {
+                flex-direction: row;
+            }
         }
-        
+
+        /* Survivor section */
         .survivor-section {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .border-b { border-bottom-width: 1px; }
+        .border-gray-600 { border-color: #4b5563; }
+        .pb-2 { padding-bottom: 0.5rem; }
+
+        .survivor-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
+            margin-top: 1rem;
         }
         
+        /* Survivor card styling and responsiveness */
         .survivor-card {
+            background-color: #1f2937;
+            padding: 1rem;
+            border-radius: 0.5rem;
             flex-basis: 24%;
             min-width: 250px;
         }
-        
         @media (max-width: 1024px) {
             .survivor-card {
                 flex-basis: 48%;
             }
         }
-        
         @media (max-width: 640px) {
             .survivor-card {
                 flex-basis: 100%;
             }
         }
 
-        .stat-input {
-            width: 4rem;
+        /* Survivor stat grid and text */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+        .ml-2 { margin-left: 0.5rem; }
+        .text-red-400 { color: #f87171; }
+        
+        /* Bleed bar styling */
+        .mt-4 { margin-top: 1rem; }
+        .text-gray-400 { color: #9ca3af; }
+        .bleed-bar {
+            position: relative;
+            padding-top: 0.25rem;
+        }
+        .bleed-bg {
+            overflow: hidden;
+            height: 0.75rem;
+            display: flex;
+            border-radius: 0.25rem;
+            background-color: #4b5563;
+        }
+        .bleed-fill {
+            transition: width 0.3s ease-in-out;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
             text-align: center;
+            white-space: nowrap;
+            color: white;
+            justify-content: center;
+            background-color: #ef4444; /* Initial red color */
+        }
+        .text-sm { font-size: 0.875rem; }
+
+        /* Monster section */
+        .monster-section {
+            flex-grow: 1;
+            margin-top: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .monster-section {
+                margin-top: 0;
+            }
+        }
+        @media (min-width: 1024px) {
+            .monster-section {
+                width: 33.333333%;
+            }
         }
 
+        .monster-card {
+            min-height: 120px;
+            background-color: #1f2937;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* Monster life bar styling */
+        .relative { position: relative; }
+        .pt-1 { padding-top: 0.25rem; }
+        .overflow-hidden { overflow: hidden; }
+        .h-4 { height: 1rem; }
+        .text-xs { font-size: 0.75rem; }
+        .rounded { border-radius: 0.25rem; }
+        .bg-red-800 { background-color: #991b1b; }
+        .bg-green-500 { background-color: #22c55e; }
+        .bg-yellow-500 { background-color: #eab308; }
+        .bg-red-500 { background-color: #ef4444; }
+        .transition-all { transition-property: all; }
+        .duration-300 { transition-duration: 300ms; }
+        .mt-1 { margin-top: 0.25rem; }
+        .text-right { text-align: right; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Control Panel styles */
         .control-panel {
             position: fixed;
             top: 50%;
@@ -106,11 +221,46 @@
             visibility: visible;
             opacity: 1;
         }
-        
-        .monster-stats {
-            min-height: 120px;
-        }
 
+        /* Control Panel input and button styles */
+        .mb-4 { margin-bottom: 1rem; }
+        .text-gray-300 { color: #d1d5db; }
+        .input-field {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: #374151;
+            border-radius: 0.375rem;
+            color: #fff;
+            border: 1px solid #4b5563;
+            outline: none;
+        }
+        .input-field:focus {
+            ring-width: 2px;
+            ring-color: #6366f1;
+        }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .input-label {
+            display: block;
+            color: #d1d5db;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .close-btn {
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0.5rem;
+            background-color: #dc2626;
+            color: #fff;
+            border-radius: 0.375rem;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .close-btn:hover { background-color: #b91c1c; }
+        .hidden { display: none; }
+        .text-yellow-200 { color: #fef08a; }
+        .bg-yellow-900 { background-color: #78350f; }
+
+        /* Loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -138,6 +288,7 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Injury toggle */
         .injury-toggle {
             display: inline-block;
             width: 1.5rem;
@@ -160,9 +311,23 @@
             background-color: #b91c1c;
             color: white;
         }
-        
-        .blur-sm {
-            filter: blur(4px);
+
+        /* Message box */
+        .message-box {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            padding: 1rem;
+            background-color: #1f2937;
+            color: #f3f4f6;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            display: none;
+            transition: all 0.3s ease-in-out;
+            z-index: 50;
+        }
+        .message-box.show {
+            display: block;
         }
     </style>
 </head>
@@ -183,27 +348,27 @@
         </header>
 
         <!-- Main stats container with new horizontal layout -->
-        <main class="flex flex-col sm:flex-row flex-wrap gap-6 justify-center">
+        <main class="main-content">
 
             <!-- Survivor Stats Section -->
-            <section id="survivor-stats" class="flex-1 min-w-0">
+            <section id="survivor-stats" class="survivor-section">
                 <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Survivors</h2>
                 <!-- This grid now acts as a flex container for the cards -->
-                <div id="survivor-grid" class="survivor-section mt-4">
+                <div id="survivor-grid" class="survivor-grid">
                     <!-- Survivor cards will be dynamically inserted here -->
                 </div>
             </section>
 
             <!-- Monster Stats Section -->
-            <section id="monster-stats" class="lg:w-1/3 mt-6 sm:mt-0">
+            <section id="monster-stats" class="monster-section">
                 <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Monster</h2>
-                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats mt-4">
+                <div id="monster-card" class="monster-card">
                     <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
                     <div class="mb-2">
                         <label class="text-sm text-gray-400" for="monster-life">Life</label>
                         <div class="relative pt-1">
                             <div class="overflow-hidden h-4 text-xs flex rounded bg-red-800">
-                                <div id="monster-life-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
+                                <div id="monster-life-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-300"></div>
                             </div>
                         </div>
                         <p id="monster-life-text" class="text-sm text-right mt-1">20 / 20</p>
@@ -214,14 +379,14 @@
         </main>
 
         <!-- General info and Footer -->
-        <footer class="text-center mt-6 text-gray-500 text-sm">
+        <footer class="footer">
             <p>Overlay powered by Firestore. Press <kbd>Esc</kbd> to toggle controls.</p>
             <p>Your User ID: <span id="user-id"></span></p>
         </footer>
     </div>
 
     <!-- Control Panel -->
-    <div id="control-panel" class="control-panel w-full max-w-lg p-8 rounded-lg">
+    <div id="control-panel" class="control-panel">
         <h2 class="text-3xl font-bold mb-4 text-center">Control Panel</h2>
 
         <!-- Warning message for local mode -->
@@ -231,24 +396,24 @@
 
         <!-- General Game Info Controls -->
         <div class="mb-6 border-b border-gray-700 pb-4">
-            <label for="year-input" class="block text-gray-300 font-semibold mb-2">Game Year</label>
-            <input id="year-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label for="year-input" class="input-label">Game Year</label>
+            <input id="year-input" type="number" min="1" class="input-field">
         </div>
 
         <!-- Monster Controls -->
         <div class="mb-6 border-b border-gray-700 pb-4">
             <h3 class="text-xl font-bold mb-2">Monster Stats</h3>
             <div class="mb-2">
-                <label for="monster-name-input" class="block text-gray-300 font-semibold mb-1">Monster Name</label>
-                <input id="monster-name-input" type="text" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label for="monster-name-input" class="input-label">Monster Name</label>
+                <input id="monster-name-input" type="text" class="input-field">
             </div>
             <div class="mb-2">
-                <label for="monster-life-input" class="block text-gray-300 font-semibold mb-1">Current Life</label>
-                <input id="monster-life-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label for="monster-life-input" class="input-label">Current Life</label>
+                <input id="monster-life-input" type="number" min="0" class="input-field">
             </div>
             <div>
-                <label for="monster-max-life-input" class="block text-gray-300 font-semibold mb-1">Max Life</label>
-                <input id="monster-max-life-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label for="monster-max-life-input" class="input-label">Max Life</label>
+                <input id="monster-max-life-input" type="number" min="1" class="input-field">
             </div>
         </div>
 
@@ -258,11 +423,11 @@
             <!-- Survivor input fields will be dynamically added here -->
         </div>
 
-        <button id="close-btn" class="mt-6 w-full py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 transition duration-200">Close</button>
+        <button id="close-btn" class="close-btn">Close</button>
     </div>
 
     <!-- Message Box -->
-    <div id="message-box" class="fixed bottom-4 left-4 p-4 bg-gray-800 text-white rounded-lg shadow-lg hidden"></div>
+    <div id="message-box" class="message-box"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -284,15 +449,14 @@
         const showMessageBox = (message, type = 'info') => {
             const messageBox = document.getElementById('message-box');
             messageBox.textContent = message;
-            messageBox.className = `fixed bottom-4 left-4 p-4 rounded-lg shadow-lg block z-50 transition-all duration-300 ease-in-out`;
+            messageBox.className = `message-box show`;
             if (type === 'error') {
                 messageBox.classList.add('bg-red-800', 'text-white');
             } else {
                 messageBox.classList.add('bg-gray-800', 'text-white');
             }
             setTimeout(() => {
-                messageBox.classList.remove('block');
-                messageBox.classList.add('hidden');
+                messageBox.classList.remove('show');
             }, 3000);
         };
 
@@ -392,10 +556,10 @@
             survivors.forEach(survivor => {
                 const card = document.createElement('div');
                 card.id = `card-${survivor.id}`;
-                card.className = "bg-gray-800 p-4 rounded-lg survivor-card";
+                card.className = "survivor-card";
                 card.innerHTML = `
                     <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
-                    <div class="grid grid-cols-2 gap-2 text-sm text-gray-300">
+                    <div class="stat-grid">
                         <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
                         <p>Insanity: <span id="${survivor.id}-insanity">${survivor.insanity}</span></p>
                         <p>Head: <span id="${survivor.id}-head">${survivor.head}</span><span id="${survivor.id}-head-injury" class="ml-2 text-red-400">${survivor.headInjury === 'low' ? 'L' : survivor.headInjury === 'high' ? 'H' : ''}</span></p>
@@ -406,9 +570,9 @@
                     </div>
                     <div class="mt-4">
                         <label class="text-sm text-gray-400">Bleed: <span id="${survivor.id}-bleed-text">${survivor.bleed} / ${survivor.maxBleed}</span></label>
-                        <div class="relative pt-1">
-                            <div class="overflow-hidden h-3 flex text-xs rounded bg-gray-600">
-                                <div id="${survivor.id}-bleed-fill" style="width: ${survivor.bleed / survivor.maxBleed * 100}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
+                        <div class="bleed-bar">
+                            <div class="bleed-bg">
+                                <div id="${survivor.id}-bleed-fill" style="width: ${survivor.bleed / survivor.maxBleed * 100}%" class="bleed-fill"></div>
                             </div>
                         </div>
                     </div>
@@ -425,7 +589,8 @@
             const lifePercentage = (monster.currentLife / monster.maxLife) * 100;
             lifeFill.style.width = `${Math.max(0, lifePercentage)}%`;
             lifeText.textContent = `${monster.currentLife} / ${monster.maxLife}`;
-            lifeFill.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
+            
+            lifeFill.className = lifeFill.className.replace(/bg-(red|yellow|green)-500/g, '').trim();
             if (lifePercentage > 50) {
                 lifeFill.classList.add('bg-green-500');
             } else if (lifePercentage > 25) {
@@ -446,8 +611,8 @@
             gameState.survivors.forEach(survivor => {
                 const survivorDiv = document.createElement('div');
                 survivorDiv.className = "mb-4 border-b border-gray-700 pb-2";
-                survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">${survivor.color} Survivor Name</label>
-                    <input id="${survivor.id}-name-input" type="text" value="${survivor.name}" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="input-label">${survivor.color} Survivor Name</label>
+                    <input id="${survivor.id}-name-input" type="text" value="${survivor.name}" class="input-field">
                 `;
                 controlsContainer.appendChild(survivorDiv);
                 
