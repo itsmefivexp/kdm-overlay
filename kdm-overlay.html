@@ -31,22 +31,12 @@
         /* Updated survivor section to use flexbox for a horizontal layout */
         .survivor-section {
             display: flex;
-            flex-wrap: wrap;
             gap: 1rem;
         }
         .survivor-card {
-            flex-basis: 24%; /* Adjust to fit 4 cards in a row with some spacing */
+            flex-basis: 25%;
+            flex-shrink: 0;
             min-width: 250px;
-        }
-        @media (max-width: 1024px) {
-            .survivor-card {
-                flex-basis: 48%; /* 2 cards per row on smaller screens */
-            }
-        }
-        @media (max-width: 640px) {
-            .survivor-card {
-                flex-basis: 100%; /* 1 card per row on mobile */
-            }
         }
         .stat-input {
             width: 4rem;
@@ -183,23 +173,23 @@
 
         <!-- Main stats container with new horizontal layout -->
         <main class="flex flex-col sm:flex-row flex-wrap gap-6 justify-center">
-
-            <!-- Survivor Stats Section -->
-            <section id="survivor-stats" class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 border-b border-gray-600 pb-2 mb-4">
-                    <label for="settlement-name-display" class="text-2xl font-bold flex-grow text-outline-white">Settlement:</label>
-                    <input id="settlement-name-display" type="text" class="text-xl bg-transparent w-full text-right font-semibold text-outline-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            
+            <!-- Settlement/Year section on a single line -->
+            <div class="w-full flex items-center gap-4 border-b border-gray-600 pb-2 mb-4">
+                <div class="flex items-center gap-2 flex-grow">
+                    <label for="settlement-name-display" class="text-2xl font-bold text-outline-white">Settlement:</label>
+                    <input id="settlement-name-display" type="text" class="text-xl bg-transparent flex-grow text-left font-semibold text-outline-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <!-- This grid now acts as a flex container for the cards -->
-                <div id="survivor-grid" class="survivor-section mt-4">
-                    <!-- Survivor cards will be dynamically inserted here -->
-                </div>
-            </section>
-
-            <!-- Monster Stats Section -->
-            <section id="monster-stats" class="lg:w-1/3 mt-6 sm:mt-0">
-                <h2 id="lantern-year-heading" class="text-2xl font-bold border-b border-gray-600 pb-2 text-outline-white"></h2>
-                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats mt-4">
+                <h2 id="lantern-year-heading" class="text-2xl font-bold text-outline-white whitespace-nowrap"></h2>
+            </div>
+            
+            <!-- Survivor and Monster cards -->
+            <div id="game-cards" class="flex gap-6 justify-center overflow-x-auto whitespace-nowrap">
+                <!-- Survivor cards will be dynamically inserted here -->
+                <div id="survivor-grid" class="survivor-section"></div>
+                
+                <!-- Monster Card -->
+                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg survivor-card">
                     <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
                     <div class="mb-2">
                         <label class="text-sm text-gray-400" for="monster-life">Life</label>
@@ -211,7 +201,7 @@
                         <p id="monster-life-text" class="text-sm text-right mt-1">20 / 20</p>
                     </div>
                 </div>
-            </section>
+            </div>
 
         </main>
 
@@ -378,9 +368,10 @@
                 card.className = "bg-gray-800 p-4 rounded-lg survivor-card";
                 card.innerHTML = `
                     <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
-                    <div class="grid grid-cols-2 gap-2 text-sm text-gray-300">
+                    <div class="grid grid-cols-3 gap-2 text-sm text-gray-300">
                         <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
                         <p>Insanity: <span id="${survivor.id}-insanity">${survivor.insanity}</span></p>
+                        <p></p>
                         <p>Head: <span id="${survivor.id}-head">${survivor.head}</span><span id="${survivor.id}-head-injury" class="ml-2 text-red-400">${survivor.headInjury === 'low' ? 'L' : survivor.headInjury === 'high' ? 'H' : ''}</span></p>
                         <p>Body: <span id="${survivor.id}-body">${survivor.body}</span><span id="${survivor.id}-body-injury" class="ml-2 text-red-400">${survivor.bodyInjury === 'low' ? 'L' : survivor.bodyInjury === 'high' ? 'H' : ''}</span></p>
                         <p>Hands: <span id="${survivor.id}-hands">${survivor.hands}</span><span id="${survivor.id}-hands-injury" class="ml-2 text-red-400">${survivor.handsInjury === 'low' ? 'L' : survivor.handsInjury === 'high' ? 'H' : ''}</span></p>
