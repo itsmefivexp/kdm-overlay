@@ -122,6 +122,24 @@
             background-color: #b91c1c;
             color: white;
         }
+        .floating-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+            padding: 1rem 1.5rem;
+            background: #b91c1c; /* A strong red */
+            color: white;
+            border-radius: 9999px;
+            font-weight: bold;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .floating-button:hover {
+            background-color: #991b1b; /* Darker red on hover */
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
@@ -461,7 +479,11 @@
                 renderControlPanel(currentGameState);
             }
         };
-
+        // Event listener for the new button
+        const toggleControlBtn = document.getElementById('toggle-control-btn');
+        if (toggleControlBtn) {
+            toggleControlBtn.addEventListener('click', toggleControlPanel);
+        }
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 toggleControlPanel();
@@ -557,5 +579,9 @@
 
         window.onload = setupFirebase;
     </script>
+    <!-- Controls Button for Mobile/Tablet -->
+    <button id="toggle-control-btn" class="floating-button">
+        Controls
+    </button>
 </body>
 </html>
