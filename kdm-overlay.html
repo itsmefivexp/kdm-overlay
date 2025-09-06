@@ -186,19 +186,19 @@
             <!-- Survivor and Monster cards -->
             <div id="game-cards" class="flex gap-6 justify-start overflow-x-auto whitespace-nowrap w-full">
                 <!-- Survivor cards will be dynamically inserted here -->
-                <div id="survivor-grid" class="survivor-section"></div>
-                
-                <!-- Monster Card -->
-                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg survivor-card">
-                    <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
-                    <div class="mb-2">
-                        <label class="text-sm text-gray-400" for="monster-life">Life</label>
-                        <div class="relative pt-1">
-                            <div class="overflow-hidden h-4 text-xs flex rounded bg-red-800">
-                                <div id="monster-life-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
+                <div id="survivor-grid" class="survivor-section">
+                    <!-- Monster Card -->
+                    <div id="monster-card" class="bg-gray-800 p-4 rounded-lg survivor-card">
+                        <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
+                        <div class="mb-2">
+                            <label class="text-sm text-gray-400" for="monster-life">Life</label>
+                            <div class="relative pt-1">
+                                <div class="overflow-hidden h-4 text-xs flex rounded bg-red-800">
+                                    <div id="monster-life-fill" style="width: 100%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-300"></div>
+                                </div>
                             </div>
+                            <p id="monster-life-text" class="text-sm text-right mt-1">20 / 20</p>
                         </div>
-                        <p id="monster-life-text" class="text-sm text-right mt-1">20 / 20</p>
                     </div>
                 </div>
             </div>
@@ -361,7 +361,12 @@
 
         const renderSurvivors = (survivors) => {
             const container = document.getElementById('survivor-grid');
+            // Remove existing survivor cards, but keep the monster card
+            const monsterCard = document.getElementById('monster-card');
             container.innerHTML = '';
+            if (monsterCard) {
+                container.appendChild(monsterCard);
+            }
             survivors.forEach(survivor => {
                 const card = document.createElement('div');
                 card.id = `card-${survivor.id}`;
