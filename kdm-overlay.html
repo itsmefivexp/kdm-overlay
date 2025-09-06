@@ -169,7 +169,7 @@
     </div>
 
     <!-- Main Overlay Container -->
-    <div id="main-overlay" class="container w-full max-w-full mx-auto rounded-lg p-6 md:p-10">
+    <div id="main-overlay" class="container w-full max-w-screen-2xl mx-auto rounded-lg p-6 md:p-10">
 
         <!-- Main stats container with new horizontal layout -->
         <main class="flex flex-col sm:flex-row flex-wrap gap-6 justify-center">
@@ -184,7 +184,7 @@
             </div>
             
             <!-- Survivor and Monster cards -->
-            <div id="game-cards" class="flex gap-6 justify-start overflow-x-auto whitespace-nowrap">
+            <div id="game-cards" class="flex gap-6 justify-start overflow-x-auto whitespace-nowrap w-[120%]">
                 <!-- Survivor cards will be dynamically inserted here -->
                 <div id="survivor-grid" class="survivor-section"></div>
                 
@@ -243,7 +243,7 @@
             </div>
             <div class="mb-2 flex items-center gap-2">
                 <label for="monster-max-life-input" class="block text-gray-300 font-semibold flex-grow">Max Life</label>
-                <input id="monster-max-life-input" type="number" min="1" class="stat-input p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input id="monster-max-life-input" type="number" min="1" class="stat-input p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-ring-indigo-500">
                 <button class="plus-minus-btn" data-target="monster-max-life-input" data-op="minus">-</button>
                 <button class="plus-minus-btn" data-target="monster-max-life-input" data-op="plus">+</button>
             </div>
