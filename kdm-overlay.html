@@ -131,20 +131,20 @@
         </header>
 
         <!-- Survivor and Monster Stats -->
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main class="flex flex-col lg:flex-row gap-6">
 
             <!-- Survivor Stats Section -->
-            <section id="survivor-stats" class="lg:col-span-2 space-y-4">
+            <section id="survivor-stats" class="flex-grow">
                 <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Survivors</h2>
-                <div id="survivor-grid" class="survivor-section">
+                <div id="survivor-grid" class="survivor-section mt-4">
                     <!-- Survivor cards will be dynamically inserted here -->
                 </div>
             </section>
 
             <!-- Monster Stats Section -->
-            <section id="monster-stats" class="lg:col-span-1">
+            <section id="monster-stats" class="lg:w-1/3">
                 <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Monster</h2>
-                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats">
+                <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats mt-4">
                     <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
                     <div class="mb-2">
                         <label class="text-sm text-gray-400" for="monster-life">Life</label>
@@ -481,7 +481,7 @@
 
             const toggle = e.target.closest('.injury-toggle');
             if (toggle) {
-                const survivorId = toggle.dataset.survivorId;
+                const survivorId = toggle.dataset.survivor-id;
                 const part = toggle.dataset.part;
                 const injuryProp = `${part}Injury`;
                 
