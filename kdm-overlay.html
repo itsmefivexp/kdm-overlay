@@ -259,26 +259,41 @@
         };
 
         const setupFirebase = async () => {
-            if (firebaseConfigString && initialAuthToken && appId) {
+            if (firebaseConfigString && appId) {
                 try {
                     const firebaseConfig = JSON.parse(firebaseConfigString);
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
                     
+                    // The onAuthStateChanged listener will handle all sign-in logic
                     onAuthStateChanged(auth, async (user) => {
                         if (user) {
+                            // A user is signed in.
                             userId = user.uid;
                             document.getElementById('user-id').textContent = userId;
+                            document.getElementById('local-mode-warning').classList.add('hidden');
+                            isConnected = true;
                             initDataListener();
+                            console.log("Successfully connected to Firestore.");
                         } else {
-                            await signInAnonymously(auth);
+                            // No user is signed in.
+                            if (initialAuthToken) {
+                                // Use the provided custom token if available
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                // Fallback to anonymous sign-in
+                                await signInAnonymously(auth);
+                            }
+                        }
+                        
+                        // Hide the loading overlay after the initial auth state check is complete.
+                        // This prevents a flash of content if authentication is slow.
+                        if (!hasDataLoaded) {
+                            hideLoadingOverlay();
+                            hasDataLoaded = true;
                         }
                     });
-
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    isConnected = true;
-                    console.log("Successfully connected to Firestore.");
 
                 } catch (e) {
                     console.error("Firebase initialization failed:", e);
@@ -441,22 +456,13 @@
 
                     updateUI(currentGameState);
 
-                    if (!hasDataLoaded) {
-                        hideLoadingOverlay();
-                        hasDataLoaded = true;
-                    }
                 } else {
                     currentGameState = initialGameState;
                     await setDoc(gameStateRef, initialGameState);
-                    if (!hasDataLoaded) {
-                        hideLoadingOverlay();
-                        hasDataLoaded = true;
-                    }
                 }
             }, (error) => {
                 console.error("Error listening to document:", error);
                 showMessageBox("Error loading data from Firestore. Check console for details.", 'error');
-                hideLoadingOverlay();
                 unsubscribe();
                 fallbackToLocalMode();
             });
