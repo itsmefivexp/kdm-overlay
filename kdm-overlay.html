@@ -229,13 +229,16 @@
 
         // IMPORTANT: The variables below are provided by the collaborative environment.
         // If you are running this file locally, they will be undefined.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : null;
         const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // You can manually set a hardcoded key here for your stream.
-        // The key must be the same in both the browser and the OBS browser source.
-        const hardcodedAppId = 'itsme5xp'; // <-- CHANGE THIS TO A UNIQUE, MEMORABLE STRING (e.g., 'my-stream-key')
+        // Function to get the appId from the URL query string
+        const getAppIdFromUrl = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('appId');
+        };
+
+        const appIdFromUrl = getAppIdFromUrl();
 
         let app = null;
         let db = null;
@@ -244,7 +247,7 @@
         let currentGameState = null;
         let isConnected = false;
         let hasDataLoaded = false;
-
+        
         const showMessageBox = (message, type = 'info') => {
             const messageBox = document.getElementById('message-box');
             messageBox.textContent = message;
@@ -265,7 +268,7 @@
         };
 
         const setupFirebase = async () => {
-            const appKey = appId || hardcodedAppId;
+            const appKey = appIdFromUrl;
 
             if (firebaseConfigString && appKey) {
                 try {
@@ -526,7 +529,7 @@
                 updateUI(currentGameState);
 
                 if (isConnected) {
-                    const gameStateRef = getGameStateRef(appId || hardcodedAppId);
+                    const gameStateRef = getGameStateRef(appIdFromUrl);
                     try {
                         await setDoc(gameStateRef, currentGameState);
                         showMessageBox("Game state saved to Firestore.");
@@ -574,7 +577,7 @@
             updateUI(currentGameState);
 
             if (isConnected) {
-                const gameStateRef = getGameStateRef(appId || hardcodedAppId);
+                const gameStateRef = getGameStateRef(appIdFromUrl);
                 try {
                     await setDoc(gameStateRef, currentGameState);
                     showMessageBox("Game state saved to Firestore.");
