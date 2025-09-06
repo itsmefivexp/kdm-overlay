@@ -302,11 +302,12 @@
             document.getElementById('local-mode-warning').classList.remove('hidden');
         };
         
+        // This function now points to a public, shared location
         const getGameStateRef = () => {
-            if (!db || !userId) {
+            if (!db || !appId) {
                 return null;
             }
-            return doc(db, `artifacts/${appId}/users/${userId}/kdm_stats/game_state`);
+            return doc(db, `artifacts/${appId}/public/data/kdm_stats/game_state`);
         };
 
         const initialSurvivors = [
@@ -492,7 +493,7 @@
 
             const toggle = e.target.closest('.injury-toggle');
             if (toggle) {
-                const survivorId = toggle.dataset.survivor-id;
+                const survivorId = toggle.dataset.survivorId;
                 const part = toggle.dataset.part;
                 const injuryProp = `${part}Injury`;
                 
