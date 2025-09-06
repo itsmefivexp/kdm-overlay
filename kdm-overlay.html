@@ -313,6 +313,9 @@
                 return null;
             }
             // Corrected Firestore document path to have an even number of segments
+            // This is the public path for collaborative apps.
+            // The path is: /artifacts/{appId}/public/data/{collection}/{document}
+            // For your app, this is: /artifacts/YOUR_APP_ID/public/data/game_state/kdm_stats
             return doc(db, 'artifacts', appId, 'public', 'data', 'game_state', 'kdm_stats');
         };
 
@@ -472,10 +475,6 @@
         };
 
         const updateUI = (gameState) => {
-            const gameYear = document.getElementById('game-year');
-            if (gameYear) {
-                gameYear.textContent = `Lantern Year: ${gameState.year}`;
-            }
             renderMonster(gameState.monster);
             renderSurvivors(gameState.survivors);
         };
