@@ -7,18 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Uncial Antiqua', serif;
+            font-family: 'Roboto', sans-serif;
             color: #f3f4f6;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(1px);
+            background: transparent;
+            backdrop-filter: none;
         }
         .container {
-            border: 2px solid #555;
-            background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            border: none;
+            background: transparent;
+            box-shadow: none;
             position: relative;
         }
         .stat-bar {
@@ -140,6 +140,35 @@
             background-color: #991b1b; /* Darker red on hover */
             transform: scale(1.05);
         }
+        /* New CSS for plus/minus buttons */
+        .plus-minus-btn {
+            background-color: #4b5563;
+            color: #d1d5db;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .plus-minus-btn:hover {
+            background-color: #6b7280;
+        }
+        
+        .text-outline-white {
+            color: black;
+            text-shadow:
+                -1px -1px 0 #fff,
+                1px -1px 0 #fff,
+                -1px 1px 0 #fff,
+                1px 1px 0 #fff;
+        }
+        
     </style>
 </head>
 <body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
@@ -152,18 +181,15 @@
     <!-- Main Overlay Container -->
     <div id="main-overlay" class="container w-full max-w-7xl mx-auto rounded-lg p-6 md:p-10">
 
-        <!-- Header -->
-        <header class="text-center mb-6">
-            <h1 class="text-3xl md:text-5xl font-bold mb-2 tracking-wide">Kingdom Death: Monster</h1>
-            <p id="game-year" class="text-xl md:text-2xl font-semibold text-gray-400">Lantern Year: 1</p>
-        </header>
-
         <!-- Main stats container with new horizontal layout -->
         <main class="flex flex-col sm:flex-row flex-wrap gap-6 justify-center">
 
             <!-- Survivor Stats Section -->
             <section id="survivor-stats" class="flex-1 min-w-0">
-                <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Survivors</h2>
+                <div class="flex items-center gap-2 border-b border-gray-600 pb-2 mb-4">
+                    <label for="settlement-name-display" class="text-2xl font-bold flex-grow text-outline-white">Settlement:</label>
+                    <input id="settlement-name-display" type="text" class="text-xl bg-transparent w-full text-right font-semibold text-outline-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
                 <!-- This grid now acts as a flex container for the cards -->
                 <div id="survivor-grid" class="survivor-section mt-4">
                     <!-- Survivor cards will be dynamically inserted here -->
@@ -172,7 +198,7 @@
 
             <!-- Monster Stats Section -->
             <section id="monster-stats" class="lg:w-1/3 mt-6 sm:mt-0">
-                <h2 class="text-2xl font-bold border-b border-gray-600 pb-2">Monster</h2>
+                <h2 id="lantern-year-heading" class="text-2xl font-bold border-b border-gray-600 pb-2 text-outline-white"></h2>
                 <div id="monster-card" class="bg-gray-800 p-4 rounded-lg monster-stats mt-4">
                     <p class="text-xl font-bold mb-2"><span id="monster-name">White Lion</span></p>
                     <div class="mb-2">
@@ -208,22 +234,28 @@
         <div class="mb-6 border-b border-gray-700 pb-4">
             <label for="year-input" class="block text-gray-300 font-semibold mb-2">Game Year</label>
             <input id="year-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label for="settlement-name-input" class="block text-gray-300 font-semibold mb-2">Settlement Name</label>
+            <input id="settlement-name-input" type="text" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <!-- Monster Controls -->
         <div class="mb-6 border-b border-gray-700 pb-4">
             <h3 class="text-xl font-bold mb-2">Monster Stats</h3>
-            <div class="mb-2">
-                <label for="monster-name-input" class="block text-gray-300 font-semibold mb-1">Monster Name</label>
+            <div class="mb-2 flex items-center gap-2">
+                <label for="monster-name-input" class="block text-gray-300 font-semibold flex-grow">Monster Name</label>
                 <input id="monster-name-input" type="text" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <div class="mb-2">
-                <label for="monster-life-input" class="block text-gray-300 font-semibold mb-1">Current Life</label>
-                <input id="monster-life-input" type="number" min="0" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="mb-2 flex items-center gap-2">
+                <label for="monster-life-input" class="block text-gray-300 font-semibold flex-grow">Current Life</label>
+                <input id="monster-life-input" type="number" min="0" class="stat-input p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button class="plus-minus-btn" data-target="monster-life-input" data-op="minus">-</button>
+                <button class="plus-minus-btn" data-target="monster-life-input" data-op="plus">+</button>
             </div>
-            <div>
-                <label for="monster-max-life-input" class="block text-gray-300 font-semibold mb-1">Max Life</label>
-                <input id="monster-max-life-input" type="number" min="1" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="mb-2 flex items-center gap-2">
+                <label for="monster-max-life-input" class="block text-gray-300 font-semibold flex-grow">Max Life</label>
+                <input id="monster-max-life-input" type="number" min="1" class="stat-input p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button class="plus-minus-btn" data-target="monster-max-life-input" data-op="minus">-</button>
+                <button class="plus-minus-btn" data-target="monster-max-life-input" data-op="plus">+</button>
             </div>
         </div>
 
@@ -332,6 +364,7 @@
         
         const initialGameState = {
             year: 1,
+            settlementName: 'The Settlement',
             survivors: initialSurvivors,
             monster: initialMonster
         };
@@ -390,6 +423,7 @@
             controlsContainer.innerHTML = '';
             
             document.getElementById('year-input').value = gameState.year;
+            document.getElementById('settlement-name-input').value = gameState.settlementName;
             document.getElementById('monster-name-input').value = gameState.monster.name;
             document.getElementById('monster-life-input').value = gameState.monster.currentLife;
             document.getElementById('monster-max-life-input').value = gameState.monster.maxLife;
@@ -413,11 +447,16 @@
                     const isMaxBleed = stat === 'maxBleed';
                     let labelText = stat.replace(/([A-Z])/g, ' $1').trim();
                     if (isMaxBleed) labelText = 'Max Bleed';
-
+                    const hasButtons = !['name', 'maxBleed'].includes(stat);
+                    
                     statContainer.innerHTML += `
-                        <div class="flex items-center">
+                        <div class="flex items-center gap-2">
                             <label for="${survivor.id}-${stat}-input" class="block text-gray-300 font-semibold text-sm capitalize flex-grow">${labelText}</label>
                             <input id="${survivor.id}-${stat}-input" type="number" value="${survivor[stat]}" class="stat-input p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            ${hasButtons ? `
+                                <button class="plus-minus-btn" data-target="${survivor.id}-${stat}-input" data-op="minus">-</button>
+                                <button class="plus-minus-btn" data-target="${survivor.id}-${stat}-input" data-op="plus">+</button>
+                            ` : ''}
                             ${isInjuryPart ? `<span id="${survivor.id}-${stat}-injury-toggle" data-survivor-id="${survivor.id}" data-part="${stat}" class="injury-toggle ml-2">${survivor[`${stat}Injury`] === 'low' ? 'L' : survivor[`${stat}Injury`] === 'high' ? 'H' : ''}</span>` : ''}
                         </div>
                     `;
@@ -463,7 +502,8 @@
         };
 
         const updateUI = (gameState) => {
-            document.getElementById('game-year').textContent = `Lantern Year: ${gameState.year}`;
+            document.getElementById('lantern-year-heading').textContent = `Lantern Year: ${gameState.year}`;
+            document.getElementById('settlement-name-display').value = gameState.settlementName;
             renderMonster(gameState.monster);
             renderSurvivors(gameState.survivors);
         };
@@ -491,6 +531,33 @@
         });
 
         document.getElementById('close-btn').addEventListener('click', toggleControlPanel);
+        
+        // New listener to handle plus/minus button clicks
+        controlPanel.addEventListener('click', async (e) => {
+            const button = e.target.closest('.plus-minus-btn');
+            if (button) {
+                const targetId = button.dataset.target;
+                const operation = button.dataset.op;
+                const input = document.getElementById(targetId);
+
+                if (input && input.type === 'number') {
+                    let value = parseInt(input.value, 10);
+                    if (isNaN(value)) {
+                        value = 0;
+                    }
+
+                    if (operation === 'plus') {
+                        value++;
+                    } else if (operation === 'minus') {
+                        value--;
+                    }
+                    
+                    input.value = value;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        });
+
 
         controlPanel.addEventListener('click', async (e) => {
             if (!currentGameState) return;
@@ -543,6 +610,9 @@
             if (fieldId === 'year-input') {
                 currentGameState.year = value;
             }
+            else if (fieldId === 'settlement-name-input') {
+                currentGameState.settlementName = value;
+            }
             else if (fieldId === 'monster-name-input') {
                 currentGameState.monster.name = value;
             }
@@ -562,6 +632,24 @@
             }
             
             updateUI(currentGameState);
+
+            if (isConnected) {
+                const gameStateRef = getGameStateRef();
+                try {
+                    await setDoc(gameStateRef, currentGameState);
+                    showMessageBox("Game state saved to Firestore.");
+                } catch (error) {
+                    console.error("Error saving document:", error);
+                    showMessageBox("Error saving data to Firestore. Check console.", 'error');
+                }
+            } else {
+                console.log("Running in local mode. Data not saved to Firestore.");
+            }
+        });
+
+        document.getElementById('settlement-name-display').addEventListener('input', async (e) => {
+            if (!currentGameState) return;
+            currentGameState.settlementName = e.target.value;
 
             if (isConnected) {
                 const gameStateRef = getGameStateRef();
