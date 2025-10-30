@@ -382,7 +382,6 @@
                 `;
                 
                 card.innerHTML = `
-                    ${deathOverlay}
                     <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
                     <div class="grid grid-cols-3 gap-2 text-sm text-gray-300">
                         <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
@@ -394,6 +393,7 @@
                         <p>Feet: <span id="${survivor.id}-feet">${survivor.feet}</span><span id="${survivor.id}-feet-injury" class="ml-2 text-red-400">${survivor.feetInjury === 'low' ? 'L' : survivor.feetInjury === 'high' ? 'H' : ''}</span></p>
                         <p>Waist: <span id="${survivor.id}-waist">${survivor.waist}</span><span id="${survivor.id}-waist-injury" class="ml-2 text-red-400">${survivor.waistInjury === 'low' ? 'L' : survivor.waistInjury === 'high' ? 'H' : ''}</span></p>
                     </div>
+                    ${deathOverlay}
                     <div class="mt-4">
                         <label class="text-sm text-gray-400">Bleed: <span id="${survivor.id}-bleed-text">${survivor.bleed} / ${survivor.maxBleed}</span></label>
                         <div class="relative pt-1">
@@ -722,6 +722,7 @@
     </button>
 </body>
 </html>
+
 
 
 
