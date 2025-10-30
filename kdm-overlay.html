@@ -382,6 +382,7 @@
                 `;
                 
                 card.innerHTML = `
+                    ${deathOverlay}
                     <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
                     <div class="grid grid-cols-3 gap-2 text-sm text-gray-300">
                         <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
@@ -721,4 +722,5 @@
     </button>
 </body>
 </html>
+
 
