@@ -340,10 +340,10 @@
         };
 
         const initialSurvivors = [
-            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
+            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
+            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
+            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
         ];
 
         const initialMonster = {
@@ -496,7 +496,7 @@
                     const fetchedState = doc.data();
                     const updatedSurvivors = initialSurvivors.map(initialSurvivor => {
                         const fetchedSurvivor = fetchedState.survivors.find(s => s.id === initialSurvivor.id) || {};
-                        return { ...initialSurvivor, ...fetchedSurvivor };
+                        return { ...initialSurvivor, isDead: false, ...fetchedSurvivor };
                     });
                     
                     currentGameState = {
@@ -722,5 +722,6 @@
     </button>
 </body>
 </html>
+
 
 
