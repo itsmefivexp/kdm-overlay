@@ -340,10 +340,10 @@
         };
 
         const initialSurvivors = [
-            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
-            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
+            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none' },
         ];
 
         const initialMonster = {
@@ -371,6 +371,16 @@
                 const card = document.createElement('div');
                 card.id = `card-${survivor.id}`;
                 card.className = "bg-gray-800 p-4 rounded-lg survivor-card";
+
+                // Death Overlay logic
+                const deathOverlayClass = survivor.isDead ? 'opacity-100 visible' : 'opacity-0 invisible';
+                const deathOverlay = `
+                    <div id="${survivor.id}-death-overlay" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded-lg ${deathOverlayClass} transition-opacity duration-300">
+                        <!-- Using a strong red color and bold text for visual impact -->
+                        <span class="text-4xl font-black text-red-600 tracking-widest text-outline-white transform rotate-6">DECEASED</span>
+                    </div>
+                `;
+                
                 card.innerHTML = `
                     <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
                     <div class="grid grid-cols-3 gap-2 text-sm text-gray-300">
@@ -379,7 +389,7 @@
                         <p></p>
                         <p>Head: <span id="${survivor.id}-head">${survivor.head}</span><span id="${survivor.id}-head-injury" class="ml-2 text-red-400">${survivor.headInjury === 'low' ? 'L' : survivor.headInjury === 'high' ? 'H' : ''}</span></p>
                         <p>Body: <span id="${survivor.id}-body">${survivor.body}</span><span id="${survivor.id}-body-injury" class="ml-2 text-red-400">${survivor.bodyInjury === 'low' ? 'L' : survivor.bodyInjury === 'high' ? 'H' : ''}</span></p>
-                        <p>Hands: <span id="${survivor.id}-hands">${survivor.hands}</span><span id="${survivor.id}-hands-injury" class="ml-2 text-red-400">${survivor.handsInjury === 'low' ? 'L' : survivor.handsInjury === 'high' ? 'H' : ''}</span></p>
+                        <p>Arms: <span id="${survivor.id}-arms">${survivor.arms}</span><span id="${survivor.id}-arms-injury" class="ml-2 text-red-400">${survivor.armsInjury === 'low' ? 'L' : survivor.armsInjury === 'high' ? 'H' : ''}</span></p>
                         <p>Feet: <span id="${survivor.id}-feet">${survivor.feet}</span><span id="${survivor.id}-feet-injury" class="ml-2 text-red-400">${survivor.feetInjury === 'low' ? 'L' : survivor.feetInjury === 'high' ? 'H' : ''}</span></p>
                         <p>Waist: <span id="${survivor.id}-waist">${survivor.waist}</span><span id="${survivor.id}-waist-injury" class="ml-2 text-red-400">${survivor.waistInjury === 'low' ? 'L' : survivor.waistInjury === 'high' ? 'H' : ''}</span></p>
                     </div>
@@ -427,16 +437,28 @@
             gameState.survivors.forEach(survivor => {
                 const survivorDiv = document.createElement('div');
                 survivorDiv.className = "mb-4 border-b border-gray-700 pb-2";
+
+                // Added Deceased Checkbox Control
+                const deceasedControl = `
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="${survivor.id}-is-dead-input" class="text-red-400 font-bold flex-grow mr-4">Survivor Deceased?</label>
+                        <input id="${survivor.id}-is-dead-input" type="checkbox" ${survivor.isDead ? 'checked' : ''} 
+                               class="h-6 w-6 rounded text-red-600 bg-gray-700 border-gray-600 focus:ring-red-500" 
+                               data-survivor-id="${survivor.id}">
+                    </div>
+                `;
+                
                 survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">${survivor.color} Survivor Name</label>
                     <input id="${survivor.id}-name-input" type="text" value="${survivor.name}" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    ${deceasedControl}
                 `;
                 controlsContainer.appendChild(survivorDiv);
                 
                 const statContainer = document.createElement('div');
                 statContainer.className = "grid grid-cols-2 gap-4 mt-2";
                 
-                const stats = ['survival', 'insanity', 'head', 'body', 'hands', 'feet', 'waist', 'bleed', 'maxBleed'];
-                const injuryParts = ['head', 'body', 'hands', 'feet', 'waist'];
+                const stats = ['survival', 'insanity', 'head', 'body', 'arms', 'feet', 'waist', 'bleed', 'maxBleed'];
+                const injuryParts = ['head', 'body', 'arms', 'feet', 'waist'];
 
                 stats.forEach(stat => {
                     const isInjuryPart = injuryParts.includes(stat);
@@ -554,6 +576,36 @@
             }
         });
 
+        // NEW: Listener for the Deceased checkbox changes
+        controlPanel.addEventListener('change', async (e) => {
+            if (!currentGameState) return;
+
+            const checkbox = e.target;
+            if (checkbox.type === 'checkbox' && checkbox.id.endsWith('-is-dead-input')) {
+                const survivorId = checkbox.dataset.survivorId;
+                const isDead = checkbox.checked;
+
+                const survivorIndex = currentGameState.survivors.findIndex(s => s.id === survivorId);
+                if (survivorIndex !== -1) {
+                    currentGameState.survivors[survivorIndex].isDead = isDead;
+                }
+
+                updateUI(currentGameState); // Update UI immediately to show/hide overlay
+
+                if (isConnected) {
+                    const gameStateRef = getGameStateRef();
+                    try {
+                        await setDoc(gameStateRef, currentGameState);
+                        showMessageBox("Game state saved to Firestore.");
+                    } catch (error) {
+                        console.error("Error saving document:", error);
+                        showMessageBox("Error saving data to Firestore. Check console.", 'error');
+                    }
+                } else {
+                    console.log("Running in local mode. Data not saved to Firestore.");
+                }
+            }
+        });
 
         controlPanel.addEventListener('click', async (e) => {
             if (!currentGameState) return;
@@ -669,3 +721,4 @@
     </button>
 </body>
 </html>
+
