@@ -339,11 +339,12 @@
             return doc(db, 'kdm_stats/game_state');
         };
 
+        // Added 'insanityInjury' property to support the new toggle
         const initialSurvivors = [
-            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
-            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
-            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
-            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, arms: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', armsInjury: 'none', feetInjury: 'none', waistInjury: 'none', isDead: false },
+            { id: 'survivor-1', color: 'Blue', name: 'Survivor 1', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none', insanityInjury: 'none', isDead: false },
+            { id: 'survivor-2', color: 'Red', name: 'Survivor 2', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none', insanityInjury: 'none', isDead: false },
+            { id: 'survivor-3', color: 'Green', name: 'Survivor 3', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none', insanityInjury: 'none', isDead: false },
+            { id: 'survivor-4', color: 'White', name: 'Survivor 4', survival: 0, insanity: 0, head: 0, body: 0, hands: 0, feet: 0, waist: 0, bleed: 0, maxBleed: 5, headInjury: 'none', bodyInjury: 'none', handsInjury: 'none', feetInjury: 'none', waistInjury: 'none', insanityInjury: 'none', isDead: false },
         ];
 
         const initialMonster = {
@@ -359,6 +360,14 @@
             monster: initialMonster
         };
 
+        // Helper to get the correct Tailwind class for the text color based on injury status
+        const getInjuryClass = (injuryStatus) => {
+            if (injuryStatus === 'low') return 'text-yellow-400 font-semibold'; // Light Injury
+            if (injuryStatus === 'high') return 'text-red-500 font-bold'; // Heavy Injury
+            return 'text-gray-300'; // No Injury (default color)
+        };
+
+
         const renderSurvivors = (survivors) => {
             const container = document.getElementById('survivor-grid');
             // Remove existing survivor cards, but keep the monster card
@@ -367,33 +376,50 @@
             if (monsterCard) {
                 container.appendChild(monsterCard);
             }
+            
             survivors.forEach(survivor => {
                 const card = document.createElement('div');
                 card.id = `card-${survivor.id}`;
-                card.className = "bg-gray-800 p-4 rounded-lg survivor-card";
-
+                card.className = "bg-gray-800 p-4 rounded-lg survivor-card relative"; 
+                
                 // Death Overlay logic
                 const deathOverlayClass = survivor.isDead ? 'opacity-100 visible' : 'opacity-0 invisible';
                 const deathOverlay = `
-                    <div id="${survivor.id}-death-overlay" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded-lg ${deathOverlayClass} transition-opacity duration-300">
-                        <!-- Using a strong red color and bold text for visual impact -->
-                        <span class="text-4xl font-black text-red-600 tracking-widest text-outline-white transform rotate-6">DECEASED</span>
+                    <div id="${survivor.id}-death-overlay" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded-lg ${deathOverlayClass} transition-opacity duration-300 z-20">
+                        <!-- Text is now constrained by reducing font size and removing rotation/tracking -->
+                        <span class="text-4xl font-black text-red-600 text-outline-white transform rotate-6">DECEASED</span>
                     </div>
                 `;
-                
+
+                // Determine if the Insanity label should be red
+                const isInsanityInjured = survivor.insanityInjury === 'high';
+                // Apply 'text-red-500 font-bold' if injured, otherwise use the default parent color 'text-gray-300'
+                const insanityLabelClass = isInsanityInjured ? 'text-red-500 font-bold' : 'text-gray-300';
+
+
                 card.innerHTML = `
+                    ${deathOverlay}
                     <p class="text-xl font-bold mb-2">${survivor.color}: ${survivor.name}</p>
-                    <div class="grid grid-cols-3 gap-2 text-sm text-gray-300">
-                        ${deathOverlay}
-                        <p>Survival: <span id="${survivor.id}-survival">${survivor.survival}</span></p>
-                        <p>Insanity: <span id="${survivor.id}-insanity">${survivor.insanity}</span></p>
-                        <p></p>
-                        <p>Head: <span id="${survivor.id}-head">${survivor.head}</span><span id="${survivor.id}-head-injury" class="ml-2 text-red-400">${survivor.headInjury === 'low' ? 'L' : survivor.headInjury === 'high' ? 'H' : ''}</span></p>
-                        <p>Body: <span id="${survivor.id}-body">${survivor.body}</span><span id="${survivor.id}-body-injury" class="ml-2 text-red-400">${survivor.bodyInjury === 'low' ? 'L' : survivor.bodyInjury === 'high' ? 'H' : ''}</span></p>
-                        <p>Arms: <span id="${survivor.id}-arms">${survivor.arms}</span><span id="${survivor.id}-arms-injury" class="ml-2 text-red-400">${survivor.armsInjury === 'low' ? 'L' : survivor.armsInjury === 'high' ? 'H' : ''}</span></p>
-                        <p>Feet: <span id="${survivor.id}-feet">${survivor.feet}</span><span id="${survivor.id}-feet-injury" class="ml-2 text-red-400">${survivor.feetInjury === 'low' ? 'L' : survivor.feetInjury === 'high' ? 'H' : ''}</span></p>
-                        <p>Waist: <span id="${survivor.id}-waist">${survivor.waist}</span><span id="${survivor.id}-waist-injury" class="ml-2 text-red-400">${survivor.waistInjury === 'low' ? 'L' : survivor.waistInjury === 'high' ? 'H' : ''}</span></p>
+                    
+                    <!-- NEW: Separated Survival and Insanity fields for clarity -->
+                    <div class="flex justify-between items-center text-base font-semibold text-gray-300 mb-2 border-b border-gray-700 pb-2">
+                        <!-- Survival label is default color, value is white -->
+                        <p>Survival: <span id="${survivor.id}-survival" class="text-white">${survivor.survival}</span></p>
+                        
+                        <!-- Insanity label uses dynamic class (red when injured), value is explicitly white -->
+                        <p class="${insanityLabelClass}">Insanity: <span id="${survivor.id}-insanity" class="text-white">${survivor.insanity}</span></p>
                     </div>
+
+                    <!-- Armor Locations (Hit Locations) Grid -->
+                    <div class="grid grid-cols-3 gap-y-1 text-sm">
+                        <!-- Injury locations use dynamic classes for color/style -->
+                        <p class="${getInjuryClass(survivor.headInjury)}">Head: <span id="${survivor.id}-head">${survivor.head}</span></p>
+                        <p class="${getInjuryClass(survivor.bodyInjury)}">Body: <span id="${survivor.id}-body">${survivor.body}</span></p>
+                        <p class="${getInjuryClass(survivor.handsInjury)}">Hands: <span id="${survivor.id}-hands">${survivor.hands}</span></p>
+                        <p class="${getInjuryClass(survivor.feetInjury)}">Feet: <span id="${survivor.id}-feet">${survivor.feet}</span></p>
+                        <p class="${getInjuryClass(survivor.waistInjury)}">Waist: <span id="${survivor.id}-waist">${survivor.waist}</span></p>
+                    </div>
+                    
                     <div class="mt-4">
                         <label class="text-sm text-gray-400">Bleed: <span id="${survivor.id}-bleed-text">${survivor.bleed} / ${survivor.maxBleed}</span></label>
                         <div class="relative pt-1">
@@ -438,8 +464,8 @@
             gameState.survivors.forEach(survivor => {
                 const survivorDiv = document.createElement('div');
                 survivorDiv.className = "mb-4 border-b border-gray-700 pb-2";
-
-                // Added Deceased Checkbox Control
+                
+                // Added Deceased Checkbox Control back
                 const deceasedControl = `
                     <div class="flex items-center justify-between mb-2">
                         <label for="${survivor.id}-is-dead-input" class="text-red-400 font-bold flex-grow mr-4">Survivor Deceased?</label>
@@ -448,8 +474,9 @@
                                data-survivor-id="${survivor.id}">
                     </div>
                 `;
-                
-                survivorDiv.innerHTML = `<label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">${survivor.color} Survivor Name</label>
+
+                survivorDiv.innerHTML = `
+                    <label for="${survivor.id}-name-input" class="block text-gray-300 font-semibold mb-2">${survivor.color} Survivor Name</label>
                     <input id="${survivor.id}-name-input" type="text" value="${survivor.name}" class="w-full p-2 bg-gray-700 rounded-md text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     ${deceasedControl}
                 `;
@@ -458,16 +485,27 @@
                 const statContainer = document.createElement('div');
                 statContainer.className = "grid grid-cols-2 gap-4 mt-2";
                 
-                const stats = ['survival', 'insanity', 'head', 'body', 'arms', 'feet', 'waist', 'bleed', 'maxBleed'];
-                const injuryParts = ['head', 'body', 'arms', 'feet', 'waist'];
+                const stats = ['survival', 'insanity', 'head', 'body', 'hands', 'feet', 'waist', 'bleed', 'maxBleed'];
+                const injuryParts = ['head', 'body', 'hands', 'feet', 'waist'];
 
                 stats.forEach(stat => {
-                    const isInjuryPart = injuryParts.includes(stat);
+                    const isArmorPart = injuryParts.includes(stat);
+                    const isInsanity = stat === 'insanity';
                     const isMaxBleed = stat === 'maxBleed';
                     let labelText = stat.replace(/([A-Z])/g, ' $1').trim();
                     if (isMaxBleed) labelText = 'Max Bleed';
                     const hasButtons = !['name', 'maxBleed'].includes(stat);
                     
+                    let toggleContent = '';
+                    if (isArmorPart) {
+                        toggleContent = survivor[`${stat}Injury`] === 'low' ? 'L' : survivor[`${stat}Injury`] === 'high' ? 'H' : '';
+                    } else if (isInsanity) {
+                        // For insanity, we only show 'H' (High/Heavy Injury)
+                        toggleContent = survivor.insanityInjury === 'high' ? 'H' : '';
+                    }
+                    
+                    const showToggle = isArmorPart || isInsanity;
+
                     statContainer.innerHTML += `
                         <div class="flex items-center gap-2">
                             <label for="${survivor.id}-${stat}-input" class="block text-gray-300 font-semibold text-sm capitalize flex-grow">${labelText}</label>
@@ -476,7 +514,7 @@
                                 <button class="plus-minus-btn" data-target="${survivor.id}-${stat}-input" data-op="minus">-</button>
                                 <button class="plus-minus-btn" data-target="${survivor.id}-${stat}-input" data-op="plus">+</button>
                             ` : ''}
-                            ${isInjuryPart ? `<span id="${survivor.id}-${stat}-injury-toggle" data-survivor-id="${survivor.id}" data-part="${stat}" class="injury-toggle ml-2">${survivor[`${stat}Injury`] === 'low' ? 'L' : survivor[`${stat}Injury`] === 'high' ? 'H' : ''}</span>` : ''}
+                            ${showToggle ? `<span id="${survivor.id}-${stat}-injury-toggle" data-survivor-id="${survivor.id}" data-part="${stat}" class="injury-toggle ml-2">${toggleContent}</span>` : ''}
                         </div>
                     `;
                 });
@@ -494,9 +532,10 @@
             const unsubscribe = onSnapshot(gameStateRef, async (doc) => {
                 if (doc.exists()) {
                     const fetchedState = doc.data();
+                    // Ensure the isDead property and the new insanityInjury property are handled when merging/updating state
                     const updatedSurvivors = initialSurvivors.map(initialSurvivor => {
                         const fetchedSurvivor = fetchedState.survivors.find(s => s.id === initialSurvivor.id) || {};
-                        return { ...initialSurvivor, isDead: false, ...fetchedSurvivor };
+                        return { ...initialSurvivor, isDead: false, insanityInjury: 'none', ...fetchedSurvivor };
                     });
                     
                     currentGameState = {
@@ -551,7 +590,7 @@
 
         document.getElementById('close-btn').addEventListener('click', toggleControlPanel);
         
-        // New listener to handle plus/minus button clicks
+        // Listener to handle plus/minus button clicks
         controlPanel.addEventListener('click', async (e) => {
             const button = e.target.closest('.plus-minus-btn');
             if (button) {
@@ -577,13 +616,65 @@
             }
         });
 
-        // NEW: Listener for the Deceased checkbox changes
+
+        controlPanel.addEventListener('click', async (e) => {
+            if (!currentGameState) return;
+
+            const toggle = e.target.closest('.injury-toggle');
+            if (toggle) {
+                const survivorId = toggle.dataset.survivorId;
+                const part = toggle.dataset.part; // 'insanity' or an armor part
+                const injuryProp = `${part}Injury`;
+                
+                const survivorIndex = currentGameState.survivors.findIndex(s => s.id === survivorId);
+                if (survivorIndex !== -1) {
+                    const currentInjury = currentGameState.survivors[survivorIndex][injuryProp];
+                    let newInjury = 'none';
+
+                    if (part === 'insanity') {
+                        // INSANITY LOGIC: none -> high (Red) -> none
+                        if (currentInjury === 'none') {
+                            newInjury = 'high';
+                        } else { 
+                            newInjury = 'none';
+                        }
+                    } else {
+                        // ARMOR LOCATION LOGIC: none -> low (Yellow) -> high (Red) -> none
+                        if (currentInjury === 'none') {
+                            newInjury = 'low';
+                        } else if (currentInjury === 'low') {
+                            newInjury = 'high';
+                        }
+                        // else it resets to 'none' if it was 'high'
+                    }
+                    currentGameState.survivors[survivorIndex][injuryProp] = newInjury;
+                }
+                
+                updateUI(currentGameState);
+
+                if (isConnected) {
+                    const gameStateRef = getGameStateRef();
+                    try {
+                        await setDoc(gameStateRef, currentGameState);
+                        showMessageBox("Game state saved to Firestore.");
+                    } catch (error) {
+                        console.error("Error updating document:", error);
+                        showMessageBox("Error saving data to Firestore. Check console.", 'error');
+                    }
+                } else {
+                    console.log("Running in local mode. Data not saved to Firestore.");
+                }
+            }
+        });
+
+        // Re-added the listener for the Deceased checkbox changes, which triggers the UI update
         controlPanel.addEventListener('change', async (e) => {
             if (!currentGameState) return;
 
             const checkbox = e.target;
             if (checkbox.type === 'checkbox' && checkbox.id.endsWith('-is-dead-input')) {
-                const survivorId = checkbox.dataset.survivorId;
+                // Corrected data-survivor-id access (was using hyphen instead of camelCase)
+                const survivorId = checkbox.dataset.survivorId; 
                 const isDead = checkbox.checked;
 
                 const survivorIndex = currentGameState.survivors.findIndex(s => s.id === survivorId);
@@ -600,44 +691,6 @@
                         showMessageBox("Game state saved to Firestore.");
                     } catch (error) {
                         console.error("Error saving document:", error);
-                        showMessageBox("Error saving data to Firestore. Check console.", 'error');
-                    }
-                } else {
-                    console.log("Running in local mode. Data not saved to Firestore.");
-                }
-            }
-        });
-
-        controlPanel.addEventListener('click', async (e) => {
-            if (!currentGameState) return;
-
-            const toggle = e.target.closest('.injury-toggle');
-            if (toggle) {
-                const survivorId = toggle.dataset.survivorId;
-                const part = toggle.dataset.part;
-                const injuryProp = `${part}Injury`;
-                
-                const survivorIndex = currentGameState.survivors.findIndex(s => s.id === survivorId);
-                if (survivorIndex !== -1) {
-                    const currentInjury = currentGameState.survivors[survivorIndex][injuryProp];
-                    let newInjury = 'none';
-                    if (currentInjury === 'none') {
-                        newInjury = 'low';
-                    } else if (currentInjury === 'low') {
-                        newInjury = 'high';
-                    }
-                    currentGameState.survivors[survivorIndex][injuryProp] = newInjury;
-                }
-                
-                updateUI(currentGameState);
-
-                if (isConnected) {
-                    const gameStateRef = getGameStateRef();
-                    try {
-                        await setDoc(gameStateRef, currentGameState);
-                        showMessageBox("Game state saved to Firestore.");
-                    } catch (error) {
-                        console.error("Error updating document:", error);
                         showMessageBox("Error saving data to Firestore. Check console.", 'error');
                     }
                 } else {
@@ -722,8 +775,3 @@
     </button>
 </body>
 </html>
-
-
-
-
-
